@@ -1,3 +1,8 @@
+/*
+	cmd:	g++ readfl.cpp mk_index.cpp -o mk_index -lz
+		./mk_index ../hg19_chr1.fa /home/tjiang/Documents/SV_detection.code/index/
+*/
+
 #include <iostream>
 #include <stdlib.h>
 #include "readfl.h"
@@ -5,6 +10,7 @@
 #include <stdio.h>
 #include <fstream>
 #include <string>
+#include <cstring>
 
 #define K_MER 13
 #define Hpart 512
@@ -49,9 +55,10 @@ typedef struct
 	uint32_t freq;
 }SRdata;
 
-int main()
+int main( int argc, char *argv[] )
 {
-	char *path = "../hg19_chr1.fa";
+	//char *path = "../hg19_chr1.fa";
+	char *path = argv[1];
 	unsigned len_genome;
 	read_file inseq;
 	char *genome = inseq.read_ref( path, &len_genome );
@@ -111,6 +118,7 @@ int main()
 		}
 		//cout << i << endl;
 		//break;
+		free(tempArray);
 	}
 	uint64_t Hash2sum = 0;
 	for( int i = 0 ; i < Kmer_code_length ; i++ )
@@ -135,7 +143,16 @@ int main()
 	for( int i = 0 ; i < SR_length ; i++ )
 		out << kmerHash[i] << endl;*/
 	FILE * outfile;
-	outfile = fopen("../hash_1", "wb");
+	//outfile = fopen("../hash_1", "wb");
+	const char *str = argv[2];
+ 	const char *str2 = "hash_1";
+ 	const size_t len = strlen(str)+strlen(str2);
+	char *n_str = new char[len+1];
+	strcpy(n_str , str);
+	strcat(n_str ,str2);
+	//cout<<n_str<<endl;
+	outfile = fopen(n_str, "wb");
+	delete [] n_str;
 	fwrite( kmerHash, sizeof(uint32_t), Kmer_code_length,outfile );
 	fclose(outfile);
 
@@ -184,12 +201,26 @@ int main()
 		}
 		//cout << i << endl;
 		//break;
+		free(tempArray);
 	}
 	/*for( int i = 0 ; i < 100 ; i++ )
 		cout << SR_HASH[i].SR << " " << SR_HASH[i].freq << endl;*/
 	FILE * outfile2;
-	outfile2 = fopen("../hash_2", "wb");
+	//outfile2 = fopen("../hash_2", "wb");
+
+	const char *str_ = argv[2];
+ 	const char *str2_ = "hash_2";
+ 	const size_t len_ = strlen(str_)+strlen(str2_);
+	char *n_str_ = new char[len_+1];
+	strcpy(n_str_, str_);
+	strcat(n_str_ ,str2_);
+	//cout<<n_str<<endl;
+	outfile2 = fopen(n_str_, "wb");
+	delete [] n_str_;
+
 	fwrite( SR_HASH, sizeof(SRdata), Hash2sum,outfile2 );
 	fclose(outfile2);
+	free(kmerHash);
+	free(SR_HASH);
 	return 0;
 }
