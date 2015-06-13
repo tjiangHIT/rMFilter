@@ -1,20 +1,9 @@
-/*
-	cmd:	g++ readfl.cpp mk_index.cpp -o mk_index -lz
-		./mk_index ../hg19_chr1.fa /home/tjiang/Documents/SV_detection.code/index/
-*/
-
 #include <iostream>
-#include <stdlib.h>
-#include "readfl.h"
-#include <stdint.h>
 #include <stdio.h>
 #include <fstream>
-#include <string>
+#include <cstdlib>
 #include <cstring>
-
-#define K_MER 13
-#define Hpart 512
-#define Fpart 1024
+#include "mk_hash.h"
 
 using namespace std;
 
@@ -29,6 +18,13 @@ uint8_t trans[128]= {
 		4,4,4,4,3,4,4,4,4,4,4,4,4,4,4,4
 	};
 
+int compare(const void *a, const void *b)
+{
+	uint32_t *pa = (uint32_t*)a;
+	uint32_t *pb = (uint32_t*)b;
+	return *pa > *pb;  //从小到大排序
+}
+
 uint32_t transfer(char *genome,uint32_t len_sed,uint32_t start)
 {
 
@@ -42,34 +38,12 @@ uint32_t transfer(char *genome,uint32_t len_sed,uint32_t start)
 	return l2r;
 }
 
-int compare(const void *a, const void *b)
+int Hash::mk_hash(char *path, char *genome, uint8_t kmer, uint32_t len_genome)
 {
-	uint32_t *pa = (uint32_t*)a;
-	uint32_t *pb = (uint32_t*)b;
-	return *pa > *pb;  //从小到大排序
-}
-
-typedef struct 
-{
-	uint32_t SR;
-	uint32_t freq;
-}SRdata;
-
-int main( int argc, char *argv[] )
-{
-	//char *path = "../hg19_chr1.fa";
-	char *path = argv[1];
-	unsigned len_genome;
-	read_file inseq;
-	char *genome = inseq.read_ref( path, &len_genome );
-
-
-
-	//uint64_t Kmer_code_length = 1 << ((2*K_MER)-1);
-	int movement = 2*K_MER;
+	int movement = 2 * kmer;
 	uint64_t Kmer_code_length = 1 << movement;
-	//cout << a << endl;
-	uint32_t * kmerHash = (uint32_t*)malloc(sizeof(uint32_t)*Kmer_code_length);
+
+	uint32_t *kmerHash = (uint32_t*)malloc(sizeof(uint32_t)*Kmer_code_length);
 	if( NULL == kmerHash) {
 		cout<<"Fail to allocate new space to hash table"<<endl;
 		exit(1);
@@ -78,35 +52,30 @@ int main( int argc, char *argv[] )
 	for( int i = 0 ; i < Kmer_code_length ; i++ )
 		kmerHash[i] = 0;
 
-	/*cout << transfer( genome, 13, 0) << endl;
-	string str = genome;
-	cout << str.substr(0,13) << endl;
-	cout << Kmer_code_length << endl;*/
-
-
 	uint64_t SR_length = len_genome / Hpart;
+
 	//cout << SR_length << endl;
+
 	for( int i = 0 ; i < SR_length ; i++ )
-//		for( int i = 0 ; i < 50 ; i++ )
 	{
 		uint32_t SQ_start = i * Hpart;
-		uint32_t *tempArray = (uint32_t*)malloc((Hpart - K_MER + 1)*sizeof(uint32_t));
+		uint32_t *tempArray = (uint32_t*)malloc(Hpart*sizeof(uint32_t));
 		if( NULL == tempArray) {
 			cout<<"Fail to allocate new space to tempArray"<<endl;
 			exit(1);
 		}
-		for( int j = 0 ; j < Hpart - K_MER + 1 ; j++ )
+		for( int j = 0 ; j < Hpart ; j++ )
 		{
-			uint32_t l2r = transfer(genome,K_MER,j+SQ_start);
+			uint32_t l2r = transfer(genome,kmer,j+SQ_start);
 			tempArray[j] = l2r;
 			//Qsort
 			//delete duplication
 			//caculation
 			//cout << j << " " << tempArray[j] << endl;
 		}
-		qsort(tempArray, Hpart - K_MER + 1, sizeof(uint32_t), compare);
+		qsort(tempArray, Hpart, sizeof(uint32_t), compare);
 		uint32_t flag = -1;
-		for( int j = 0 ; j < Hpart - K_MER + 1 ; j++ )
+		for( int j = 0 ; j < Hpart ; j++ )
 		{
 			if( flag != tempArray[j] )
 			{
@@ -128,9 +97,8 @@ int main( int argc, char *argv[] )
 		Hash2sum = Hash2sum + temp;
 		//kmerHash[i] = Hash2sum - temp;
 	}
-	cout << Hash2sum << endl;
-	//cout << kmerHash[SR_length-1] << endl;
-	//cout << kmerHash[1377648] << endl;
+	
+	//cout << Hash2sum << endl;
 
 	SRdata * SR_HASH = (SRdata*)malloc(Hash2sum*sizeof(SRdata));
 	if( NULL == SR_HASH) {
@@ -138,14 +106,10 @@ int main( int argc, char *argv[] )
 		exit(1);
 	}
 
-	/*ofstream out;
-	out.open("../fuck.txt");
-	for( int i = 0 ; i < SR_length ; i++ )
-		out << kmerHash[i] << endl;*/
 	FILE * outfile;
 	//outfile = fopen("../hash_1", "wb");
-	const char *str = argv[2];
- 	const char *str2 = "hash_1";
+	const char *str = path;
+ 	const char *str2 = "Hash_1";
  	const size_t len = strlen(str)+strlen(str2);
 	char *n_str = new char[len+1];
 	strcpy(n_str , str);
@@ -156,25 +120,39 @@ int main( int argc, char *argv[] )
 	fwrite( kmerHash, sizeof(uint32_t), Kmer_code_length,outfile );
 	fclose(outfile);
 
-
 	for( int i = 0 ; i < SR_length ; i++ )
 //		for( int i = 19 ; i < 21 ; i++ )
 	{
 		uint32_t SQ_start = i * Hpart;
-		uint32_t *tempArray = (uint32_t*)malloc((Hpart - K_MER + 1)*sizeof(uint32_t));
+		uint32_t *tempArray = (uint32_t*)malloc(Hpart*sizeof(uint32_t));
 		if( NULL == tempArray) {
 			cout<<"Fail to allocate new space to tempArray"<<endl;
 			exit(1);
 		}
-		for( int j = 0 ; j < Hpart - K_MER + 1 ; j++ )
+		for( int j = 0 ; j < Hpart ; j++ )
 		{
-			uint32_t l2r = transfer(genome,K_MER,j+SQ_start);
+			uint32_t l2r = transfer(genome,kmer,j+SQ_start);
 			tempArray[j] = l2r;
 		}
-		qsort(tempArray, Hpart - K_MER + 1, sizeof(uint32_t), compare);
-		uint32_t flag = tempArray[0];
+		qsort(tempArray, Hpart, sizeof(uint32_t), compare);
+
+		uint32_t flag = -1;
+		for( int j = 0 ; j < Hpart ; j++ )
+		{
+			if( flag != tempArray[j] )
+			{
+				flag = tempArray[j];
+				uint32_t add = kmerHash[flag];
+				SR_HASH[add].SR = i;
+				kmerHash[flag]++;
+				//cout << i << " " << j << " " << tempArray[j] << " " << flag << " " << kmerHash[flag] << endl;
+			}
+			//cout << j << " " << tempArray[j] << endl;
+		}
+
+		/*uint32_t flag = tempArray[0];
 		uint32_t flag_n = 0;
-		for( int j = 0 ; j < Hpart - K_MER + 1 ; j++ )
+		for( int j = 0 ; j < Hpart ; j++ )
 		{
 			if( flag == tempArray[j] )
 			{
@@ -184,7 +162,7 @@ int main( int argc, char *argv[] )
 			{
 				uint32_t add = kmerHash[flag];
 				SR_HASH[add].SR = i;
-				SR_HASH[add].freq = flag_n;
+				//SR_HASH[add].freq = flag_n;
 				//cout << flag << " " << kmerHash[flag] << " " << SR_HASH[add].SR << " " << SR_HASH[add].freq << endl;
 				kmerHash[flag]++;
 				flag = tempArray[j];
@@ -195,10 +173,10 @@ int main( int argc, char *argv[] )
 		{
 			uint32_t add = kmerHash[flag];
 			SR_HASH[add].SR = i;
-			SR_HASH[add].freq = flag_n;
+			//SR_HASH[add].freq = flag_n;
 			//cout << flag << " " << kmerHash[flag] << " " << SR_HASH[add].SR << " " << SR_HASH[add].freq << " " << kmerHash[flag+1] << endl;
 			kmerHash[flag]++;
-		}
+		}*/
 		//cout << i << endl;
 		//break;
 		free(tempArray);
@@ -208,8 +186,8 @@ int main( int argc, char *argv[] )
 	FILE * outfile2;
 	//outfile2 = fopen("../hash_2", "wb");
 
-	const char *str_ = argv[2];
- 	const char *str2_ = "hash_2";
+	const char *str_ = path;
+ 	const char *str2_ = "Hash_2";
  	const size_t len_ = strlen(str_)+strlen(str2_);
 	char *n_str_ = new char[len_+1];
 	strcpy(n_str_, str_);
@@ -222,5 +200,5 @@ int main( int argc, char *argv[] )
 	fclose(outfile2);
 	free(kmerHash);
 	free(SR_HASH);
-	return 0;
+	return Hash2sum;
 }
