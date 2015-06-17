@@ -6,7 +6,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-char *const short_options = "hl:";
+const char *short_options = "hl:";
 struct option long_options[] = {
 	//{ "threads",     1,   NULL,    't'   },
 	//{ "num",     1,   NULL,    'n' },

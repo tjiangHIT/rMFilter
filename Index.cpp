@@ -33,8 +33,9 @@ int main(int argc, char *argv[])
 	char *genome = inseq.read_ref( opt->ref_path, &len_genome );
 
 	Hash hash;
-	uint64_t Hash2sum;
-	Hash2sum = hash.mk_hash(opt->hash_dir, genome, opt->len_kmer, len_genome);
+	int hashtab;
+	hashtab = hash.mk_hash(opt->hash_dir, genome, opt->len_kmer, len_genome);
+	//cout << hashtab << endl;
 
 	if( NULL != opt )
 		delete opt;
