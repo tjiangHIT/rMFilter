@@ -1,3 +1,7 @@
+/*
+	Data 2015/6/22
+*/
+
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
@@ -95,17 +99,7 @@ PreRead *Local_aln::FindStart(char *Seq, bool Direction, uint32_t ReadLength, ui
 	}
 
 	priority_queue<Node>		windowQueue;
-	Node *WinQueue = new Node[1000000];
-	if( NULL == WinQueue )
-	{
-		fprintf(stderr,"Fail to alloc WinQueue, now exit");
-		exit(1);
-	}
-	uint32_t WinQueue_L = 0;
-
-
-	//priority_queue<Node>		KmerQueue;
-	priority_queue<PreRead>	pre_read_Queue;
+	priority_queue<PreRead_>	pre_read_Queue;
 
 	uint32_t judge_element = -1, count_element = 0;
 	CF region;
@@ -121,11 +115,7 @@ PreRead *Local_aln::FindStart(char *Seq, bool Direction, uint32_t ReadLength, ui
 			node.ID = i;
 			node.win = Result_way[i][0];
 			windowQueue.push(node);
-			//KmerQueue.push(node);
-			WinQueue[WinQueue_L].ID = i;
-			WinQueue[WinQueue_L].win = Result_way[i][0];
 			Each_way_flag[i]++;
-			WinQueue_L++;
 		}
 	}
 
@@ -142,13 +132,15 @@ PreRead *Local_aln::FindStart(char *Seq, bool Direction, uint32_t ReadLength, ui
 		}
 		else
 		{
-			PreRead temp_preRead;
+			PreRead_ temp_preRead;
 			temp_preRead.Win_Begin_start = region.ps;
 			temp_preRead.Win_Begin_end = region.pe;
 			//temp_preRead.direction = Direction;
 			temp_preRead.cover_score = region.pf;
 			temp_preRead.distance_score = READ_MAX_LENGTH;
 			pre_read_Queue.push(temp_preRead);
+			if( pre_read_Queue.size() > TopChoice )
+				pre_read_Queue.pop();
 
 			region.ps = windowQueue.top().win;
 			region.pe = windowQueue.top().win;
@@ -163,13 +155,11 @@ PreRead *Local_aln::FindStart(char *Seq, bool Direction, uint32_t ReadLength, ui
 			if( node.win != 0 )
 			{
 				windowQueue.push(node);
-				//KmerQueue.push(node);
-				WinQueue[WinQueue_L].ID = node.ID;
-				WinQueue[WinQueue_L].win = node.win;
-				WinQueue_L++;
 			}
 		}
 	}
+
+	// cout << pre_read_Queue.size() << endl;
 
 	PreRead *Top_preRead  = new PreRead[TopChoice];
 	if( NULL == Top_preRead )
@@ -187,10 +177,21 @@ PreRead *Local_aln::FindStart(char *Seq, bool Direction, uint32_t ReadLength, ui
 		Top_preRead[i].Win_Begin_end = pre_read_Queue.top().Win_Begin_end;
 		Top_preRead[i].direction = Direction;
 		Top_preRead[i].cover_score = pre_read_Queue.top().cover_score;
-		for( int k = 0 ; k < WinQueue_L ; k++ )
+		for( int k = 0 ; k < SEED_NUM ; k++ )
 		{
-			if( WinQueue[k].win >= Top_preRead[i].Win_Begin_start &&  WinQueue[k].win <= Top_preRead[i].Win_Begin_end )
-				con_array[WinQueue[k].ID]++;
+			// Judge the bonder maybe useful.
+
+			for( int l = 0 ; l < Each_way_count[k] ; l++ )
+			{
+				if( Result_way[k][l] >= Top_preRead[i].Win_Begin_start && Result_way[k][l] <= Top_preRead[i].Win_Begin_end )
+				{
+					con_array[k]++;
+					break;
+				}
+			}
+
+			/*if( WinQueue[k].win >= Top_preRead[i].Win_Begin_start &&  WinQueue[k].win <= Top_preRead[i].Win_Begin_end )
+				con_array[WinQueue[k].ID]++;*/
 		}
 		
 		/*for(int k = 0 ; k < 1000 ; k++)
@@ -203,8 +204,6 @@ PreRead *Local_aln::FindStart(char *Seq, bool Direction, uint32_t ReadLength, ui
 	while( !pre_read_Queue.empty() )
 		pre_read_Queue.pop();
 
-	delete[] WinQueue;
-
 	return Top_preRead;
 }
 
@@ -213,7 +212,7 @@ int Local_aln::local_aln(char *path, uint32_t kmer)
 {
 
 	ofstream Answer;
-	Answer.open("../Final_Answer");
+	Answer.open("../Final_Answer.22");
 
 	gzFile fp;
 	kseq_t *Seq;
@@ -247,13 +246,16 @@ int Local_aln::local_aln(char *path, uint32_t kmer)
 			cout << preread_1[i].Win_Begin_start << "\t";
 			cout << preread_1[i].Win_Begin_end << "\t";
 			cout << preread_1[i].direction << "\t";
+			cout << preread_1[i].distance_score << "\t";
 			cout << preread_1[i].cover_score << "\n";
 
 			cout << preread_2[i].Win_Begin_start << "\t";
 			cout << preread_2[i].Win_Begin_end << "\t";
 			cout << preread_2[i].direction << "\t";
+			cout << preread_2[i].distance_score << "\t";
 			cout << preread_2[i].cover_score << "\n";
-		}*/
+		}
+		return 0;*/
 
 		priority_queue<PreRead>	final_read;
 
@@ -262,6 +264,10 @@ int Local_aln::local_aln(char *path, uint32_t kmer)
 			final_read.push(preread_1[i]);
 			final_read.push(preread_2[i]);
 		}
+		if( preread_1 != NULL )
+			delete[] preread_1;
+		if( preread_2 != NULL )
+			delete[] preread_2;
 
 		int SV_flag = 0;
 		for( int i = 0 ; i < TopChoice ; i++ )
@@ -303,7 +309,7 @@ int Local_aln::local_aln(char *path, uint32_t kmer)
 		cycle_time++;
 
 		//break;
-		//if(cycle_time==1000)break;
+		if(cycle_time==1000)break;
 	}
 	kseq_destroy(Seq);
 	gzclose(fp);

@@ -1,3 +1,7 @@
+/*
+	Data 6 22
+*/
+
 #ifndef LOCAL_ALN_
 #define LOCAL_ALN_
 #include <stdint.h>
@@ -42,6 +46,19 @@ typedef struct node_read
 		return cover_score < a.cover_score;
 	}
 }PreRead;
+
+typedef struct node_read_
+{
+	uint32_t	Win_Begin_start;
+	uint32_t	Win_Begin_end;
+	bool		direction;
+	int		cover_score;
+	int		distance_score;
+	bool operator<( const node_read_ & a )const
+	{
+		return cover_score > a.cover_score;
+	}
+}PreRead_;
 
 typedef struct
 {
