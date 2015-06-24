@@ -1,5 +1,5 @@
 /*
-	data 2015 6 19
+	data 2015 6 24
 	Alignment the read to find SV read
 */
 
@@ -9,7 +9,7 @@
 #include <stdint.h>
 #include <sys/time.h> 
 #include <stdio.h>
-#include "local_aln.h"
+#include "Del_local_aln.h"
 #include "LCtrl_option.h"
 
 using namespace std;

@@ -69,6 +69,9 @@ int Hash::mk_hash(char *path, char *genome, uint32_t kmer, uint32_t len_genome)
 	fwrite( genome, sizeof(char), len_genome, file_ref );
 	fclose(file_ref);
 
+
+
+
 	//int movement = 2 * kmer;
 	uint32_t movement = kmer << 1;
 	uint64_t Kmer_code_length = 1 << movement;
@@ -200,6 +203,7 @@ int Hash::mk_hash(char *path, char *genome, uint32_t kmer, uint32_t len_genome)
 	delete[] tempArray;
 	delete[] kmerHash;
 	delete[] SR_HASH;
+	//may be change to outside
 
 	FILE *LengthFile;
 	char *LF_path = NULL;
