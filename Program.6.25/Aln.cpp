@@ -1,10 +1,16 @@
+/*
+	data 2015 6 24
+	Alignment the read to find SV read
+*/
+
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
 #include <stdint.h>
 #include <sys/time.h> 
 #include <stdio.h>
-#include "local_aln.h"
+#include "Del_local_aln.h"
+#include "LCtrl_option.h"
 
 using namespace std;
 
@@ -20,13 +26,21 @@ const std::string getCurrentDateTime() {
 	return buf;
 }
 
-int main(int argc, char const *argv[])
+int main(int argc, char *argv[])
 {
+	Options *opt = new Options;
+	LCtrl_option fm(opt);
+	if( fm.opt_parse(argc,argv,opt) != 1 )
+		exit(1);
+
+	fm.show_parameters(opt);
+
 	fprintf(stderr,"%s Aln started\n",getCurrentDateTime().c_str());
 	Local_aln Aln;
-	Aln.Files_open("/home/tjiang/", 13);
+	Aln.Files_open(opt->hash_dir, opt->len_kmer);
+	Aln.ParaAssign(opt->CandidateNum);
 	int h;
-	h = Aln.local_aln("../_0001.fastq", 13);
+	h = Aln.local_aln(opt->read_path, opt->len_kmer);
 	Aln.Cleaning();
 	fprintf(stderr,"%s Aln ended\n",getCurrentDateTime().c_str());
 	return 0;

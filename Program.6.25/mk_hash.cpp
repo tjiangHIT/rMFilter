@@ -19,7 +19,7 @@ uint8_t trans[128]= {
 		4,4,4,4,3,4,4,4,4,4,4,4,4,4,4,4
 	};
 
-char random_N[4] = {'A', 'C', 'G', 'T'};
+//char random_N[4] = {'A', 'C', 'G', 'T'};
 
 int compare(const void *a, const void *b)
 {
@@ -55,12 +55,12 @@ int Hash::mk_hash(char *path, char *genome, uint32_t kmer, uint32_t len_genome)
 {
 	// change the reference
 	// N and n changing the random character{A, C ,G ,T }
-	srand((int)time(NULL));
+	/*srand((int)time(NULL));
 	for( int i = 0; i < len_genome; i++ )
 	{
 		if( genome[i] == 'N')//maybe 'n' is the wrong.
 			genome[i] = random_N[rand()%4];
-	}
+	}*/
 	FILE * file_ref;
 	char *ref_path = NULL;
 	ref_path = get_path(path, "Reference");
@@ -68,6 +68,8 @@ int Hash::mk_hash(char *path, char *genome, uint32_t kmer, uint32_t len_genome)
 	delete[] ref_path;
 	fwrite( genome, sizeof(char), len_genome, file_ref );
 	fclose(file_ref);
+
+
 
 
 	//int movement = 2 * kmer;
@@ -201,6 +203,7 @@ int Hash::mk_hash(char *path, char *genome, uint32_t kmer, uint32_t len_genome)
 	delete[] tempArray;
 	delete[] kmerHash;
 	delete[] SR_HASH;
+	//may be change to outside
 
 	FILE *LengthFile;
 	char *LF_path = NULL;

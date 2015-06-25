@@ -1,3 +1,7 @@
+/*
+	Data 6 25
+*/
+
 #ifndef LOCAL_ALN_
 #define LOCAL_ALN_
 #include <stdint.h>
@@ -5,12 +9,11 @@
 //#define K_MER 13
 #define SEED_NUM 1000
 #define UpBound 1000
-#define TopChoice 5
-#define MAX_ARRAY 30
+//#define TopChoice 5
 #define Hpart 32
 #define READ_MAX_LENGTH 100000
 #define Extend 1000
-#define COVER_SCORE 100
+#define COVER_SCORE 65
 #define DISTANCE_SCORE 750
 #define TransParameter 1.1
 
@@ -37,12 +40,25 @@ typedef struct node_read
 	uint32_t	Win_Begin_end;
 	bool		direction;
 	int		cover_score;
-	int		distance_score;
+	//int		distance_score;
 	bool operator<( const node_read & a )const
 	{
 		return cover_score < a.cover_score;
 	}
 }PreRead;
+
+typedef struct node_read_
+{
+	uint32_t	Win_Begin_start;
+	uint32_t	Win_Begin_end;
+	bool		direction;
+	int		cover_score;
+	//int		distance_score;
+	bool operator<( const node_read_ & a )const
+	{
+		return cover_score > a.cover_score;
+	}
+}PreRead_;
 
 typedef struct
 {
@@ -54,7 +70,7 @@ typedef struct tuple
 {
 	uint32_t	read_begin;
 	uint32_t	ref_begin;
-	uint32_t	tuplelength;
+	//uint32_t	tuplelength;
 	bool operator<( const tuple & a )const
 	{
 		//return cover_score < a.cover_score;
@@ -72,22 +88,19 @@ class Local_aln
 	//uint32_t	kmer;
 	ReadKmerHash		*readKmerhash;
 	uint32_t		*readSRhash;
+	uint32_t		*tempArray;
+	uint32_t		*tempArrayNext;
+	uint32_t 		TopChoice;
+	uint32_t		**Result_way;
+	
 public:
 	void Files_open(char *path, uint32_t kmer);
 	int local_aln(char *path, uint32_t kmer);
-
+	void ParaAssign( uint32_t num);
 	void Cleaning();
-	// ~local_aln();
-	//delete something
-
 	PreRead *FindStart(char *Seq, bool direction, uint32_t ReadLength, uint32_t kmer);
-
 	int Judge_SV(char *Seq, uint32_t ReadLength, uint32_t kmer, uint32_t GU, uint32_t GD);
-
 	int Tuple_link( Tuple t1, Tuple t2);
-
-
-	
 };
 
 #endif
