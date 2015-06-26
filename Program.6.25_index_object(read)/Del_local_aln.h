@@ -92,6 +92,7 @@ class Local_aln
 	uint32_t		*tempArrayNext;
 	uint32_t 		TopChoice;
 	uint32_t		**Result_way;
+	char			*RCRead;
 	
 public:
 	void Files_open(char *path, uint32_t kmer);
