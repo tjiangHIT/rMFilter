@@ -1,5 +1,5 @@
 /*
-	Data 6 25
+	Data 6 30
 */
 
 #ifndef LOCAL_ALN_
@@ -11,7 +11,7 @@
 #define UpBound 1000
 //#define TopChoice 1
 #define Hpart 32
-#define READ_MAX_LENGTH 100000
+#define READ_MAX_LENGTH 1000000
 #define Extend 1000
 #define COVER_SCORE 65
 #define DISTANCE_SCORE 750
@@ -52,7 +52,7 @@ typedef struct node_read_
 	uint32_t	Win_Begin_start;
 	uint32_t	Win_Begin_end;
 	bool		direction;
-	int		cover_score;
+	uint32_t	cover_score;
 	//int		distance_score;
 	bool operator<( const node_read_ & a )const
 	{
