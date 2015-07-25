@@ -1,5 +1,6 @@
 /*
-	Data 2015/6/24
+	Data 2015/6/30
+	local aln change the index object
 */
 
 #include <iostream>
@@ -7,6 +8,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <queue>
+#include <vector>
 #include <sys/time.h> 
 #include <zlib.h>
 #include <stdio.h>
@@ -68,12 +70,12 @@ int Get_Max_range( uint32_t *array )
 	return MaxScore;
 }
 
-void Local_aln::ParaAssign(uint32_t num)
+void Local_aln::ParaAssign(float num)
 {
-	TopChoice = num;
+	CandidateRatio = num;
 }
 
-PreRead *Local_aln::FindStart(char *Seq, bool Direction, uint32_t ReadLength, uint32_t kmer)
+PreRead Local_aln::FindStart(char *Seq, bool Direction, uint32_t ReadLength, uint32_t kmer)
 {
 	uint32_t	seed_bet = (ReadLength - kmer) / SEED_NUM;
 	//uint32_t 	Result_way[SEED_NUM][UpBound];
@@ -91,10 +93,10 @@ PreRead *Local_aln::FindStart(char *Seq, bool Direction, uint32_t ReadLength, ui
 			Each_way_count[i] = 0;
 		else
 		{
-			int bias = i * seed_bet / TransParameter;
+			uint32_t bias = i * seed_bet / TransParameter;
 			bias = bias / Hpart;
 			Each_way_count[i] = kmerHash[l2r+1] - kmerHash[l2r];
-			for( int j = 0 ; j < Each_way_count[i] ; j++ )
+			for( uint32_t j = 0 ; j < Each_way_count[i] ; j++ )
 			{
 				Result_way[i][j] = SR_HASH[j+kmerHash[l2r]];
 				if( Result_way[i][j] >= bias )
@@ -143,9 +145,10 @@ PreRead *Local_aln::FindStart(char *Seq, bool Direction, uint32_t ReadLength, ui
 			temp_preRead.Win_Begin_end = region.pe;
 			//temp_preRead.direction = Direction;
 			temp_preRead.cover_score = region.pf;
+			//cout << region.ps << "\t" << region.pe << "\t" << region.pf << "\n";
 			//temp_preRead.distance_score = READ_MAX_LENGTH;
 			pre_read_Queue.push(temp_preRead);
-			if( pre_read_Queue.size() > TopChoice )
+			if( pre_read_Queue.size() > 1 )
 				pre_read_Queue.pop();
 
 			region.ps = windowQueue.top().win;
@@ -166,47 +169,17 @@ PreRead *Local_aln::FindStart(char *Seq, bool Direction, uint32_t ReadLength, ui
 	}
 
 	// cout << pre_read_Queue.size() << endl;
+	//cout << pre_read_Queue.top().Win_Begin_start << "\t" << pre_read_Queue.top().Win_Begin_end << "\t" << pre_read_Queue.top().cover_score << "\n";
 
-	PreRead *Top_preRead  = new PreRead[TopChoice];
-	if( NULL == Top_preRead )
-	{
-		fprintf(stderr,"Fail to alloc Top_preRead, now exit");
-		exit(1);
-	}
+	PreRead Top_preRead;
+	Top_preRead.Win_Begin_start = pre_read_Queue.top().Win_Begin_start;
+	Top_preRead.Win_Begin_end = pre_read_Queue.top().Win_Begin_end;
+	Top_preRead.direction = Direction;
+	Top_preRead.cover_score = pre_read_Queue.top().cover_score;
+	pre_read_Queue.pop();
 
-	//cout << WinQueue_L << endl;
+	//cout << Top_preRead.Win_Begin_start << "\t" << Top_preRead.Win_Begin_end << "\t" << Top_preRead.cover_score << "\n";
 
-	for( int i = 0 ; i < TopChoice ; i++ )
-	{
-		//uint32_t con_array [1000] = {0};
-		Top_preRead[i].Win_Begin_start = pre_read_Queue.top().Win_Begin_start;
-		Top_preRead[i].Win_Begin_end = pre_read_Queue.top().Win_Begin_end;
-		Top_preRead[i].direction = Direction;
-		Top_preRead[i].cover_score = pre_read_Queue.top().cover_score;
-		// for( int k = 0 ; k < SEED_NUM ; k++ )
-		// {
-		// 	// Judge the bonder maybe useful.
-
-		// 	for( int l = 0 ; l < Each_way_count[k] ; l++ )
-		// 	{
-		// 		if( Result_way[k][l] >= Top_preRead[i].Win_Begin_start && Result_way[k][l] <= Top_preRead[i].Win_Begin_end )
-		// 		{
-		// 			con_array[k]++;
-		// 			break;
-		// 		}
-		// 	}
-
-		// 	/*if( WinQueue[k].win >= Top_preRead[i].Win_Begin_start &&  WinQueue[k].win <= Top_preRead[i].Win_Begin_end )
-		// 		con_array[WinQueue[k].ID]++;*/
-		// }
-		
-		/*for(int k = 0 ; k < 1000 ; k++)
-			cout  << k << " " << con_array[k] << endl;*/
-
-		//Top_preRead[i].distance_score = Get_Max_range(con_array) * seed_bet;
-		pre_read_Queue.pop();
-		//break;
-	}
 	while( !pre_read_Queue.empty() )
 		pre_read_Queue.pop();
 
@@ -216,127 +189,162 @@ PreRead *Local_aln::FindStart(char *Seq, bool Direction, uint32_t ReadLength, ui
 
 int Local_aln::local_aln(char *path, uint32_t kmer)
 {
+	// get reads number
+	int cycle_time = 0;
+	gzFile fp;
+	kseq_t *Seq;
+	fp = gzopen(path, "r");
+	Seq = kseq_init(fp);
 
-	//long start_time = getCurrentTime();
+	while (kseq_read(Seq) >= 0) 
+	{
+		cycle_time++;
+	}
+
+	kseq_destroy(Seq);
+	gzclose(fp);
+
+	//Find start 
+	gzFile fp_2;
+	kseq_t *Seq_2;
+	fp_2 = gzopen(path, "r");
+	Seq_2 = kseq_init(fp_2);
+
+	uint32_t	ReadLength;
+	char		*PositiveRead = NULL;
+	PreRead 	preread_1;
+	PreRead 	preread_2;
+	uint32_t	*localScore = new uint32_t[cycle_time];
+	if (NULL == localScore) {
+		fprintf(stderr,"Fail to alloc localScore, now exit");
+		exit(1);
+	} 
+	PreRead 	*local_preread = new PreRead[cycle_time];
+	if (NULL == local_preread) {
+		fprintf(stderr,"Fail to alloc local_preread, now exit");
+		exit(1);
+	} 
+
+	cycle_time = 0;
+
+	while (kseq_read(Seq_2) >= 0)
+	{
+		// if( cycle_time < 923 )
+		// {
+		// 	cycle_time++;
+		// 	continue;
+		// }
+
+		ReadLength = Seq_2->seq.l;
+		PositiveRead = Seq_2->seq.s;
+		RevComRead(RCRead, Seq_2->seq.s, ReadLength);
+
+		preread_1 = FindStart(PositiveRead, true, ReadLength, kmer);
+		preread_2 = FindStart(RCRead, false, ReadLength, kmer);
+		//cout << preread_1.cover_score << "\t" << preread_2.cover_score << "\n";
+		if( preread_1.cover_score > preread_2.cover_score )
+		{
+			localScore[cycle_time] = preread_1.cover_score;
+			local_preread[cycle_time].Win_Begin_start = preread_1.Win_Begin_start;
+			local_preread[cycle_time].Win_Begin_end = preread_1.Win_Begin_end;
+			local_preread[cycle_time].direction = preread_1.direction;
+			local_preread[cycle_time].cover_score = preread_1.cover_score;
+		}
+		else
+		{
+			localScore[cycle_time] = preread_2.cover_score;
+			local_preread[cycle_time].Win_Begin_start = preread_2.Win_Begin_start;
+			local_preread[cycle_time].Win_Begin_end = preread_2.Win_Begin_end;
+			local_preread[cycle_time].direction = preread_2.direction;
+			local_preread[cycle_time].cover_score = preread_2.cover_score;
+		}
+		cycle_time++;
+
+		// if( cycle_time == 1000 ) break;
+		// break;
+	}
+
+	kseq_destroy(Seq_2);
+	gzclose(fp_2);
+
+	qsort(localScore, cycle_time, sizeof(uint32_t), compare);
+	uint32_t Threshold_pos = cycle_time * CandidateRatio;
+	uint32_t Threshold = localScore[Threshold_pos];
+
+	cout << Threshold << endl;
+
+	// return 0;
+
+	cycle_time = 0;
+
+	gzFile fp_3;
+	kseq_t *Seq_3;
+	fp_3 = gzopen(path, "r");
+	Seq_3 = kseq_init(fp_3);
 
 	ofstream Answer;
 	char *Final_path = NULL;
 	Final_path = get_path(path, ".FinalAnswer");
 	Answer.open(Final_path);
 	delete[] Final_path;
-	//Answer.open("../Final_Answer");
 
-	gzFile fp;
-	kseq_t *Seq;
-
-	fp = gzopen(path, "r");
-	Seq = kseq_init(fp);
-
-	int		cycle_time = 0;
-	uint32_t	ReadLength;
-	char		*PositiveRead = NULL;
-	//char		*RCRead = NULL;
-	char		*RCRead = new char[READ_MAX_LENGTH];
-	if (NULL == RCRead) {
-		fprintf(stderr,"Fail to allocate RCRead, now exit");
-		exit(1);
-	} 
-
-	while (kseq_read(Seq) >= 0) 
+	while (kseq_read(Seq_3) >= 0) 
 	{
-		ReadLength = Seq->seq.l;
-		PositiveRead = Seq->seq.s;
-		RevComRead(RCRead, Seq->seq.s, ReadLength);
+		// if( cycle_time < 923 )
+		// {
+		// 	cycle_time++;
+		// 	continue;
+		// }
 
-		PreRead *preread_1 = NULL;
-		PreRead *preread_2 = NULL;
-		preread_1 = FindStart(PositiveRead, true, ReadLength, kmer);
-		preread_2 = FindStart(RCRead, false, ReadLength, kmer);
+		ReadLength = Seq_3->seq.l;
+		PositiveRead = Seq_3->seq.s;
+		RevComRead(RCRead, Seq_3->seq.s, ReadLength);
 
-		/*for( int i = 0 ; i < 5 ; i++ )
+		if( local_preread[cycle_time].cover_score < Threshold )
 		{
-			cout << preread_1[i].Win_Begin_start << "\t";
-			cout << preread_1[i].Win_Begin_end << "\t";
-			cout << preread_1[i].direction << "\t";
-			cout << preread_1[i].distance_score << "\t";
-			cout << preread_1[i].cover_score << "\n";
-
-			cout << preread_2[i].Win_Begin_start << "\t";
-			cout << preread_2[i].Win_Begin_end << "\t";
-			cout << preread_2[i].direction << "\t";
-			cout << preread_2[i].distance_score << "\t";
-			cout << preread_2[i].cover_score << "\n";
+			Answer << Seq_3->name.s << "\tT" << endl;
 		}
-		return 0;*/
-
-		priority_queue<PreRead>	final_read;
-
-		for( int i = 0 ; i < TopChoice ; i++ )
-		{
-			final_read.push(preread_1[i]);
-			final_read.push(preread_2[i]);
-		}
-		if( preread_1 != NULL )
-			delete[] preread_1;
-		if( preread_2 != NULL )
-			delete[] preread_2;
-
-		int SV_flag = 0;
-		for( int i = 0 ; i < TopChoice ; i++ )
-		{
-			int Score_A = final_read.top().cover_score;
-			//int Score_B = final_read.top().distance_score;
-			//if( Score_A >= COVER_SCORE && Score_B <= DISTANCE_SCORE )
-			if( Score_A >= COVER_SCORE )
-			{
-				/*Answer << cycle_time + 1 << "\t";
-				Answer << ReadLength << "\n";
-				Answer << final_read.top().Win_Begin_start << "\t";
-				Answer << final_read.top().Win_Begin_end << "\t";
-				Answer << final_read.top().cover_score << "\n";*/
-
-				SV_flag = 1;
-				uint32_t start = final_read.top().Win_Begin_start;
-				uint32_t end = final_read.top().Win_Begin_end;
-				start = start * Hpart;
-				end = end * Hpart + Extend + ReadLength;
-				if( start < Extend )
-					start = 0;
-				else
-					start = start - Extend;
-				if( end > len_genome - kmer )
-					end = len_genome - kmer;
-				int judge;
-				if( final_read.top().direction == true )
-					judge = Judge_SV(PositiveRead, ReadLength, kmer, start, end);// 0 stands for sv, 1 stands for normal.
-				if( final_read.top().direction == false )
-					judge = Judge_SV(RCRead, ReadLength, kmer, start, end);
-				SV_flag = SV_flag * judge;
-				if( SV_flag == 1 )
-					break;
-			}
-			final_read.pop();
-		}
-
-		while( !final_read.empty() )
-			final_read.pop();
-
-		if( SV_flag == 1 )
-			Answer << cycle_time + 1 << "\tN" << endl;
 		else
-			Answer << cycle_time + 1 << "\tT" << endl;
+		{
+			int SV_flag = 1;
+			uint32_t start = local_preread[cycle_time].Win_Begin_start;
+			uint32_t end = local_preread[cycle_time].Win_Begin_end;
+			start = start * Hpart;
+			end = end * Hpart + Extend + ReadLength;
+			if( start < Extend )
+				start = 0;
+			else
+				start = start - Extend;
+			if( end > len_genome - kmer )
+				end = len_genome - kmer;
+			int judge;
+			// cout << "sd" << endl;
+			if( local_preread[cycle_time].direction == true )
+				judge = Judge_SV(PositiveRead, ReadLength, kmer, start, end);// 0 stands for sv, 1 stands for normal.
+			if( local_preread[cycle_time].direction == false )
+				judge = Judge_SV(RCRead, ReadLength, kmer, start, end);
+			SV_flag = SV_flag * judge;
+
+			if( SV_flag == 1 )
+				Answer << Seq_3->name.s << "\tN" << endl;
+			else
+				Answer << Seq_3->name.s << "\tT" << endl;
+		}
 		cycle_time++;
 
-		//break;
-		//if(cycle_time==10000)break;
+		// cout << cycle_time << endl;
+
+		// if( cycle_time == 1000 ) break;
+		// break;
 	}
-	kseq_destroy(Seq);
-	gzclose(fp);
+
+	kseq_destroy(Seq_3);
+	gzclose(fp_3);
+
 	Answer.close();
 
-	//long end_time = getCurrentTime();
-	//cout << "Times:" << end_time - start_time << "msec." << endl;
-
+	delete[] local_preread;
+	delete[] localScore;
 	return 0;
 }
 
@@ -344,6 +352,7 @@ int Local_aln::local_aln(char *path, uint32_t kmer)
 int Local_aln::Judge_SV(char *Seq, uint32_t ReadLength, uint32_t kmer, uint32_t GU, uint32_t GD)
 {
 	// 0 stands for sv, 1 stands for normal.
+	kmer = 13;
 
 	uint64_t SR_length = ReadLength + 1 - kmer;
 	uint32_t pre = 0;
@@ -364,7 +373,7 @@ int Local_aln::Judge_SV(char *Seq, uint32_t ReadLength, uint32_t kmer, uint32_t 
 	qsort(tempArray, SR_length, sizeof(uint32_t), compare);
 
 	uint32_t flag;
-	for( int i = 0 ; i < SR_length ; i++ )
+	for( uint32_t i = 0 ; i < SR_length ; i++ )
 	{
 		flag = tempArray[i];
 		readKmerhash[flag].Kpointer1++;
@@ -372,7 +381,7 @@ int Local_aln::Judge_SV(char *Seq, uint32_t ReadLength, uint32_t kmer, uint32_t 
 
 	flag = -1;
 	uint64_t sum = 0;
-	for( int i = 0 ; i < SR_length ; i++ )
+	for( uint32_t i = 0 ; i < SR_length ; i++ )
 	{
 		if( flag != tempArray[i] )
 		{
@@ -384,7 +393,7 @@ int Local_aln::Judge_SV(char *Seq, uint32_t ReadLength, uint32_t kmer, uint32_t 
 		}
 	}
 
-	for( int i = 0 ; i < SR_length ; i++ )
+	for( uint32_t i = 0 ; i < SR_length ; i++ )
 	{
 		flag = tempArrayNext[i];
 		uint32_t add = readKmerhash[flag].Kpointer2;
@@ -393,74 +402,161 @@ int Local_aln::Judge_SV(char *Seq, uint32_t ReadLength, uint32_t kmer, uint32_t 
 		readKmerhash[flag].Kpointer2++;
 	}
 
-	/*ofstream out;
-	out.open("../test");*/
+	// ofstream out;
+	// out.open("../test");
 
-	priority_queue<Tuple>	Tuple_Queue;		
-	for( int i = 0 ; i < GD - GU ; i++ )
+	priority_queue<Tuple>	Tuple_Queue;	
+	pre = transfer(genome, kmer, GU);
+	pre = ((pre>>2)&mask);	
+	for( uint32_t i = 0 ; i < GD - GU ; i++ )
 	{
 		Tuple temp_node;
 		temp_node.ref_begin = i + GU;
 		//temp_node.tuplelength = kmer;
-		uint32_t l2r = transfer(genome, kmer, i + GU);
-		uint32_t how_many_node = readKmerhash[l2r].Kpointer2 - readKmerhash[l2r].Kpointer1;
-		for( int k = 0 ; k < how_many_node ; k++ )
+		//uint32_t l2r = transfer(genome, kmer, i + GU);
+		pre = ((pre<<2)&mask)|trans[genome[i + GU + kmer - 1 ]];
+		uint32_t how_many_node = readKmerhash[pre].Kpointer2 - readKmerhash[pre].Kpointer1;
+		for( uint32_t k = 0 ; k < how_many_node ; k++ )
 		{
-			temp_node.read_begin = readSRhash[k + readKmerhash[l2r].Kpointer1];
+			temp_node.read_begin = readSRhash[k + readKmerhash[pre].Kpointer1];
 			//maybe change the shorter substr
 			Tuple_Queue.push(temp_node);
-			/*out << temp_node.ref_begin << "\t";
-			out << temp_node.read_begin << "\t";
-			out << temp_node.tuplelength << endl;*/
+			// out << temp_node.ref_begin << "\t";
+			// out << temp_node.read_begin << "\n";
 		}
 	}
 
-	//out.close();
+	// out.close();
 
-	for( int i = 0 ; i < SR_length ; i++ )
+	for( uint32_t i = 0 ; i < SR_length ; i++ )
 	{
 		readKmerhash[tempArray[i]].Kpointer1 = 0;
 		readKmerhash[tempArray[i]].Kpointer2 = 0;
 	}
 
-	//cout << Tuple_Queue.size() << endl;
-
-	if( Tuple_Queue.top().read_begin > 250 )
+	
+	if( Tuple_Queue.top().read_begin > FL_Dis )
 	{
+		// cout << Tuple_Queue.top().read_begin << endl;
 		while( !Tuple_Queue.empty() )
 			Tuple_Queue.pop();
 		return 0;
 	}
 	else
 	{
+		vector<Tuple> Tuple_Vector;
 		Tuple temp_node;
 		temp_node.ref_begin = Tuple_Queue.top().ref_begin;
 		temp_node.read_begin = Tuple_Queue.top().read_begin;
-		//temp_node.tuplelength = Tuple_Queue.top().tuplelength;
+		temp_node.tuplelength = 1;
 		Tuple_Queue.pop();
-		int local_ans = 0;
-			/*out << temp_node.ref_begin << "\t";
-			out << temp_node.read_begin << "\n";*/
-			//out << temp_node.tuplelength << endl;
+		Tuple_Vector.push_back(temp_node);
+
 		while( !Tuple_Queue.empty() )
 		{
-			local_ans = Tuple_link( temp_node, Tuple_Queue.top());
-			if( local_ans == 1 )
+			int flag = 0;
+			for( int i = 0 ; i < Tuple_Vector.size() ; i++ )
+			{
+				uint32_t V_read = Tuple_Vector[i].read_begin + Tuple_Vector[i].tuplelength;
+				uint32_t V_ref = Tuple_Vector[i].ref_begin + Tuple_Vector[i].tuplelength;
+				uint32_t Q_read = Tuple_Queue.top().read_begin;
+				uint32_t Q_ref = Tuple_Queue.top().ref_begin;
+				if( Q_read -  V_read == 0 && Q_ref - V_ref == 0 )
+				{
+					Tuple_Vector[i].tuplelength++;
+					flag = 1;
+				}
+			}
+			if( flag == 0 )
 			{
 				temp_node.ref_begin = Tuple_Queue.top().ref_begin;
 				temp_node.read_begin = Tuple_Queue.top().read_begin;
-				//temp_node.tuplelength = Tuple_Queue.top().tuplelength;
-				/*out << temp_node.ref_begin << "\t";
-				out << temp_node.read_begin << "\n";*/
-				//out << temp_node.tuplelength << endl;
+				temp_node.tuplelength = 1;
+				Tuple_Vector.push_back(temp_node);
 			}
 			Tuple_Queue.pop();
 		}
 
-		if( 250 < ReadLength - temp_node.read_begin )
+		for( int i = 0 ; i < Tuple_Vector.size() ; i++ )
 		{
+			// cout << Tuple_Vector[i].read_begin << "\t";
+			// cout << Tuple_Vector[i].ref_begin << "\t";
+			// cout << Tuple_Vector[i].tuplelength + kmer - 2 << "\n";
+			Tuple_Vector[i].tuplelength = Tuple_Vector[i].tuplelength + kmer - 2;
+			Track[i] = -1;
+			Score[i] = 0;
+		}
+		int maxScore = 0;
+		int maxScore_pos = 0;
+
+
+		for( int i = 1 ; i < Tuple_Vector.size() ; i++ )
+		{
+			for( int k =  i - 1 ; k >= 0 ; k-- )
+			{
+				int local_ans = 0;
+				local_ans = Tuple_link( Tuple_Vector[k], Tuple_Vector[i]);
+				if( local_ans == 1 )
+				{
+					if( Score[i] < Score[k] + Tuple_Vector[k].tuplelength )
+					{
+						Score[i] = Score[k] + Tuple_Vector[k].tuplelength;
+						Track[i] = k;
+						if( Score[i] >= maxScore )
+						{
+							maxScore = Score[i];
+							maxScore_pos = i;
+						}
+					}
+				}
+				// else
+				// 	break;
+			}
+
+		}
+
+		// for( int i = 0 ; i < Tuple_Vector.size() ; i++ )
+		// {
+		// 	cout << i << "\t";
+		// 	cout << Tuple_Vector[i].read_begin << "\t";
+		// 	cout << Tuple_Vector[i].ref_begin << "\t";
+		// 	cout << Tuple_Vector[i].tuplelength << "\t";
+		// 	cout << Track[i] << "\t";
+		// 	cout << Score[i] << endl;
+		// }
+		// cout << maxScore << "\t" << maxScore_pos << endl;
+
+		// cout << Tuple_link( Tuple_Vector[13], Tuple_Vector[25]) << endl;
+
+		if( maxScore == 0 && maxScore_pos == 0 )
+		{
+			if( !Tuple_Vector.empty() )
+				Tuple_Vector.clear();
 			return 0;
 		}
+
+		if( FL_Dis < ReadLength - Tuple_Vector[maxScore_pos].read_begin - Tuple_Vector[maxScore_pos].tuplelength )
+		{
+			if( !Tuple_Vector.empty() )
+				Tuple_Vector.clear();
+			return 0;
+		}
+		else
+		{
+			//binary search
+			int flag;
+			for( int i = Track[maxScore_pos] ; i >= 0 ; i = Track[i] )
+				flag = i;
+			if( Tuple_Vector[flag].read_begin > FL_Dis )
+			{
+				if( !Tuple_Vector.empty() )
+					Tuple_Vector.clear();
+				return 0;
+			}
+		}
+
+		if( !Tuple_Vector.empty() )
+			Tuple_Vector.clear();
 	}
 	return 1;
 }
@@ -471,18 +567,18 @@ int Local_aln::Tuple_link( Tuple t1, Tuple t2)
 	int	distance_ref_s;
 	double	link_chioce;
 
-	distance_read_s = t1.read_begin - t2.read_begin;
-	distance_ref_s = t1.ref_begin - t2.ref_begin;
+	distance_read_s = t2.read_begin - t1.read_begin - t1.tuplelength;
+	distance_ref_s = t2.ref_begin - t1.ref_begin - t1.tuplelength;
 
 	link_chioce = distance_read_s - TransParameter * distance_ref_s;
 	//Maybe useful
 	//distance_read_s = distance_read_s + t1.tuplelength;
 
-	/*cout << t1.read_begin << "\t" << t2.read_begin << "\t";
-	cout << t1.ref_begin << "\t" << t2.ref_begin << "\t";
-	cout << distance_read_s << "\t" << link_chioce << endl;*/
+	// cout << t1.read_begin << "\t" << t2.read_begin << "\t";
+	// cout << t1.ref_begin << "\t" << t2.ref_begin << "\t";
+	// cout << distance_read_s << "\t" << link_chioce << endl;
 
-	if( distance_read_s <= DISTANCE_SCORE && link_chioce <= 50 && link_chioce >= -50 )
+	if( distance_read_s <= DISTANCE_SCORE && distance_read_s >= 0 && link_chioce <= 50 && link_chioce >= -50 ) ///50 is too big
 		return 1;
 	else
 		return 0;
@@ -536,6 +632,7 @@ void Local_aln::Files_open(char* path, uint32_t kmer)
 
 	int movement = 2 * kmer;
 	uint64_t Kmer_code_length = 1 << movement;
+	Kmer_code_length += 1;
 
 	kmerHash = new uint32_t[Kmer_code_length];
 	if (NULL == kmerHash) {
@@ -576,7 +673,7 @@ void Local_aln::Files_open(char* path, uint32_t kmer)
 		fprintf(stderr,"Fail to alloc readKmerhash, now exit");
 		exit(1);
 	} 
-	for( int i = 0 ; i < Kmer_code_length ; i++ )
+	for( uint32_t i = 0 ; i < Kmer_code_length ; i++ )
 		readKmerhash[i].Kpointer1 = 0;
 
 	readSRhash = new uint32_t[READ_MAX_LENGTH];
@@ -600,6 +697,23 @@ void Local_aln::Files_open(char* path, uint32_t kmer)
 	Result_way = new uint32_t*[SEED_NUM];
 	for( int i = 0 ; i < SEED_NUM ; i++ )
 		Result_way[i] = new uint32_t[UpBound];
+
+	RCRead = new char[READ_MAX_LENGTH];
+	if (NULL == RCRead) {
+		fprintf(stderr,"Fail to alloc RCRead, now exit");
+		exit(1);
+	}
+
+	Track = new int[READ_MAX_LENGTH];
+	if (NULL == Track) {
+		fprintf(stderr,"Fail to alloc Track, now exit");
+		exit(1);
+	} 
+	Score = new int[READ_MAX_LENGTH];
+	if (NULL == Score) {
+		fprintf(stderr,"Fail to alloc Score, now exit");
+		exit(1);
+	} 
 
 }
 
@@ -627,8 +741,17 @@ void Local_aln::Cleaning()
 	if (NULL != tempArrayNext)
 		delete[] tempArrayNext;
 
+	if (NULL != RCRead)
+		delete[] RCRead;
+
 	if (NULL != Result_way) {
 		for (int i=0;i<SEED_NUM;++i) { delete[] Result_way[i]; }
 		delete[] Result_way;
 	}
+
+	if( Score != NULL )
+		delete[] Score;
+
+	if( Track != NULL )
+		delete[] Track;
 }

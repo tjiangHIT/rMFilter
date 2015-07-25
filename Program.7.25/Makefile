@@ -21,10 +21,14 @@ $(ALIGNER): $(ALGNOBJECTS)
 $(INDEXER): $(INDOBJECTS)
 	$(CC)  $(INDOBJECTS)  -o $@ $(LDFLAGS)
 
+
 .cpp.o:
 	$(CC) $(CFLAGS) $< -o $@
 .c.o:
 	$(CC) $(CFLAGS) $< -o $@
+debug:
+	$(CC)   $(DFLAGS)  $(ALGNSOURCES)   $(LDFLAGS)
+
 clean:
 	rm -rf *.o $(ALIGNER) $(INDEXER) a.out
 

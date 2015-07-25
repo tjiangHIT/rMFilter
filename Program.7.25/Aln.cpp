@@ -33,13 +33,18 @@ int main(int argc, char *argv[])
 	if( fm.opt_parse(argc,argv,opt) != 1 )
 		exit(1);
 
+	fm.show_parameters(opt);
+
 	fprintf(stderr,"%s Aln started\n",getCurrentDateTime().c_str());
 	Local_aln Aln;
 	Aln.Files_open(opt->hash_dir, opt->len_kmer);
-	Aln.ParaAssign(opt->CandidateNum);
+	Aln.ParaAssign(opt->CandidateRatio);
 	int h;
 	h = Aln.local_aln(opt->read_path, opt->len_kmer);
 	Aln.Cleaning();
 	fprintf(stderr,"%s Aln ended\n",getCurrentDateTime().c_str());
+
+	if( opt != NULL )
+		delete[] opt;
 	return 0;
 }

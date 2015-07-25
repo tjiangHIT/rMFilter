@@ -26,6 +26,9 @@ int main(int argc, char *argv[])
 	Ctrl_option fm(opt);
 	if( fm.opt_parse(argc,argv,opt) != 1 )
 		exit(1);
+
+	fm.show_parameters(opt);
+
 	fprintf(stderr,"%s Index started\n",getCurrentDateTime().c_str());
 
 	uint32_t len_genome = 0;

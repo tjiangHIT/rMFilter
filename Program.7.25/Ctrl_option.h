@@ -16,4 +16,5 @@ public:
 	Ctrl_option(Options *opt);
 	int Usage();
 	int opt_parse(int argc, char *argv[], Options* opt);
+	void show_parameters(Options* opt);
 };

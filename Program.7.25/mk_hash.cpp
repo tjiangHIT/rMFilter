@@ -90,12 +90,12 @@ int Hash::mk_hash(char *path, char *genome, uint32_t kmer, uint32_t len_genome)
 		exit(1);
 	}
 
-	for( int i = 0 ; i < Kmer_code_length ; i++ )
+	for( uint32_t i = 0 ; i < Kmer_code_length ; i++ )
 		kmerHash[i] = 0;
 
 	uint64_t SR_length = len_genome / Hpart;
 
-	for( int i = 0 ; i < SR_length ; i++ )
+	for( uint32_t i = 0 ; i < SR_length ; i++ )
 	{
 		uint32_t SQ_start = i * Hpart;
 		/*uint32_t *tempArray = (uint32_t*)malloc(Hpart*sizeof(uint32_t));
@@ -131,7 +131,7 @@ int Hash::mk_hash(char *path, char *genome, uint32_t kmer, uint32_t len_genome)
 		//free(tempArray);
 	}
 	uint64_t Hash2sum = 0;
-	for( int i = 0 ; i < Kmer_code_length ; i++ )
+	for( uint32_t i = 0 ; i < Kmer_code_length ; i++ )
 	{
 		uint32_t temp = kmerHash[i];
 		kmerHash[i] = Hash2sum;
@@ -154,7 +154,7 @@ int Hash::mk_hash(char *path, char *genome, uint32_t kmer, uint32_t len_genome)
 	fwrite( kmerHash, sizeof(uint32_t), Kmer_code_length, outfile );
 	fclose(outfile);
 
-	for( int i = 0 ; i < SR_length ; i++ )
+	for( uint32_t i = 0 ; i < SR_length ; i++ )
 	{
 		uint32_t SQ_start = i * Hpart;
 		/*uint32_t *tempArray = (uint32_t*)malloc(Hpart*sizeof(uint32_t));

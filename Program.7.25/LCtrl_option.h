@@ -7,7 +7,7 @@ typedef struct
 	uint8_t		len_kmer;
 	char		read_path[PATH_LEN];
 	char		hash_dir[PATH_LEN];
-	uint32_t	CandidateNum;
+	float		CandidateRatio;
 	/*#define SEED_NUM 1000
 	#define UpBound 1000
 	#define TopChoice 5
@@ -26,4 +26,5 @@ public:
 	LCtrl_option(Options *opt);
 	int Usage();
 	int opt_parse(int argc, char *argv[], Options* opt);
+	void show_parameters(Options* opt);
 };
