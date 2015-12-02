@@ -1,6 +1,6 @@
 /*
-	Data 2015/6/30
-	local aln change the index object
+	Data 2015/11/30
+	double waitting Length
 */
 
 #include <iostream>
@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <queue>
+#include <vector>
 #include <sys/time.h> 
 #include <zlib.h>
 #include <stdio.h>
@@ -72,6 +73,7 @@ int Get_Max_range( uint32_t *array )
 void Local_aln::ParaAssign(float num)
 {
 	CandidateRatio = num;
+	tempOutNum = 0;
 }
 
 PreRead Local_aln::FindStart(char *Seq, bool Direction, uint32_t ReadLength, uint32_t kmer)
@@ -228,7 +230,7 @@ int Local_aln::local_aln(char *path, uint32_t kmer)
 
 	while (kseq_read(Seq_2) >= 0)
 	{
-		// if( cycle_time < 130635 )
+		// if( cycle_time < 108 )
 		// {
 		// 	cycle_time++;
 		// 	continue;
@@ -259,7 +261,8 @@ int Local_aln::local_aln(char *path, uint32_t kmer)
 		}
 		cycle_time++;
 
-		// if( cycle_time == 8 ) break;
+		// if( cycle_time == 1000 ) break;
+		// break;
 	}
 
 	kseq_destroy(Seq_2);
@@ -269,7 +272,7 @@ int Local_aln::local_aln(char *path, uint32_t kmer)
 	uint32_t Threshold_pos = cycle_time * CandidateRatio;
 	uint32_t Threshold = localScore[Threshold_pos];
 
-	cout << Threshold << endl;
+	// cout << Threshold << endl;
 
 	// return 0;
 
@@ -286,13 +289,21 @@ int Local_aln::local_aln(char *path, uint32_t kmer)
 	Answer.open(Final_path);
 	delete[] Final_path;
 
+	ofstream ReadsFilter;
+	char *Filter_path = NULL;
+	Filter_path = get_path(path, ".Filter.fastq");
+	ReadsFilter.open(Filter_path);
+	delete[] Filter_path;
+
+	// cout << "this" << endl;
+
 	while (kseq_read(Seq_3) >= 0) 
 	{
-		/*if( cycle_time < 1 )
-		{
-			cycle_time++;
-			continue;
-		}*/
+		// if( cycle_time < 108 )
+		// {
+		// 	cycle_time++;
+		// 	continue;
+		// }
 
 		ReadLength = Seq_3->seq.l;
 		PositiveRead = Seq_3->seq.s;
@@ -301,6 +312,12 @@ int Local_aln::local_aln(char *path, uint32_t kmer)
 		if( local_preread[cycle_time].cover_score < Threshold )
 		{
 			Answer << Seq_3->name.s << "\tT" << endl;
+			// ReadsFilter
+			ReadsFilter << "@";
+			ReadsFilter << Seq_3->name.s << endl;
+			ReadsFilter << Seq_3->seq.s << endl;
+			ReadsFilter << "+" << endl;
+			ReadsFilter << Seq_3->qual.s << endl;
 		}
 		else
 		{
@@ -316,6 +333,7 @@ int Local_aln::local_aln(char *path, uint32_t kmer)
 			if( end > len_genome - kmer )
 				end = len_genome - kmer;
 			int judge;
+			// cout << "sd" << endl;
 			if( local_preread[cycle_time].direction == true )
 				judge = Judge_SV(PositiveRead, ReadLength, kmer, start, end);// 0 stands for sv, 1 stands for normal.
 			if( local_preread[cycle_time].direction == false )
@@ -323,30 +341,62 @@ int Local_aln::local_aln(char *path, uint32_t kmer)
 			SV_flag = SV_flag * judge;
 
 			if( SV_flag == 1 )
-				Answer << Seq_3->name.s << "\tN" << endl;
+			{
+				Answer << Seq_3->name.s << "\tN\t"  << start + Extend << endl;
+			}
+			else if( SV_flag == 2 )
+			{
+				Answer << Seq_3->name.s << "\tJ\t" << start + Extend << endl;
+				ReadsFilter << "@";
+				ReadsFilter << Seq_3->name.s << endl;
+				ReadsFilter << Seq_3->seq.s << endl;
+				ReadsFilter << "+" << endl;
+				ReadsFilter << Seq_3->qual.s << endl;
+			}
+			// else if( SV_flag == 3 )
+			// {
+			// 	Answer << Seq_3->name.s << "\tO" << endl;
+			// 	ReadsFilter << "@";
+			// 	ReadsFilter << Seq_3->name.s << endl;
+			// 	ReadsFilter << Seq_3->seq.s << endl;
+			// 	ReadsFilter << "+" << endl;
+			// 	ReadsFilter << Seq_3->qual.s << endl;
+			// }
 			else
-				Answer << Seq_3->name.s << "\tT" << endl;
+			{
+				Answer << Seq_3->name.s << "\tT\t" << start + Extend << endl;
+				ReadsFilter << "@";
+				ReadsFilter << Seq_3->name.s << endl;
+				ReadsFilter << Seq_3->seq.s << endl;
+				ReadsFilter << "+" << endl;
+				ReadsFilter << Seq_3->qual.s << endl;
+			}
 		}
 		cycle_time++;
 
-		// if( cycle_time == 8 ) break;
+		// cout << cycle_time << endl;
+
+		// if( cycle_time == 1000 ) break;
+		// break;
 	}
 
 	kseq_destroy(Seq_3);
 	gzclose(fp_3);
 
 	Answer.close();
+	ReadsFilter.close();
+
+	cout << tempOutNum << endl;
 
 	delete[] local_preread;
 	delete[] localScore;
 	return 0;
 }
 
-
 int Local_aln::Judge_SV(char *Seq, uint32_t ReadLength, uint32_t kmer, uint32_t GU, uint32_t GD)
 {
 	// 0 stands for sv, 1 stands for normal.
-	// kmer = 14;
+	kmer = local_seed_length;
 
 	uint64_t SR_length = ReadLength + 1 - kmer;
 	uint32_t pre = 0;
@@ -428,121 +478,181 @@ int Local_aln::Judge_SV(char *Seq, uint32_t ReadLength, uint32_t kmer, uint32_t 
 		readKmerhash[tempArray[i]].Kpointer2 = 0;
 	}
 
-	//cout << Tuple_Queue.size() << endl;
-
-	// if( ReadLength <= DISTANCE_SCORE * 7 )
+	// while( !Tuple_Queue.empty() )
 	// {
-	// 	if( Tuple_Queue.top().read_begin > 250 )
-	// 	{
-	// 		while( !Tuple_Queue.empty() )
-	// 			Tuple_Queue.pop();
-	// 		return 0;
-	// 	}
-	// 	else
-	// 	{
-	// 		Tuple temp_node;
-	// 		temp_node.ref_begin = Tuple_Queue.top().ref_begin;
-	// 		temp_node.read_begin = Tuple_Queue.top().read_begin;
-	// 		//temp_node.tuplelength = Tuple_Queue.top().tuplelength;
-	// 		Tuple_Queue.pop();
-	// 		int local_ans = 0;
-	// 			/*out << temp_node.ref_begin << "\t";
-	// 			out << temp_node.read_begin << "\n";*/
-	// 			//out << temp_node.tuplelength << endl;
-	// 		while( !Tuple_Queue.empty() )
-	// 		{
-	// 			local_ans = Tuple_link( temp_node, Tuple_Queue.top());
-	// 			if( local_ans == 1 )
-	// 			{
-	// 				temp_node.ref_begin = Tuple_Queue.top().ref_begin;
-	// 				temp_node.read_begin = Tuple_Queue.top().read_begin;
-	// 				//temp_node.tuplelength = Tuple_Queue.top().tuplelength;
-	// 				/*out << temp_node.ref_begin << "\t";
-	// 				out << temp_node.read_begin << "\n";*/
-	// 				//out << temp_node.tuplelength << endl;
-	// 			}
-	// 			Tuple_Queue.pop();
-	// 		}
-
-	// 		if( 250 < ReadLength - temp_node.read_begin )
-	// 			return 0;
-	// 	}
+	// 	cout << Tuple_Queue.top().read_begin << "\t";
+	// 	cout << Tuple_Queue.top().ref_begin << "\n";
+	// 	Tuple_Queue.pop();
 	// }
-	// else
-	// {
-	// 	if( Tuple_Queue.top().read_begin > DISTANCE_SCORE )
-	// 	{
-	// 		while( !Tuple_Queue.empty() )
-	// 			Tuple_Queue.pop();
-	// 		return 0;
-	// 	}
-	// 	else
-	// 	{
-	// 		Tuple temp_node;
-	// 		temp_node.ref_begin = Tuple_Queue.top().ref_begin;
-	// 		temp_node.read_begin = Tuple_Queue.top().read_begin;
-	// 		//temp_node.tuplelength = Tuple_Queue.top().tuplelength;
-	// 		Tuple_Queue.pop();
-	// 		int local_ans = 0;
-	// 			/*out << temp_node.ref_begin << "\t";
-	// 			out << temp_node.read_begin << "\n";*/
-	// 			//out << temp_node.tuplelength << endl;
-	// 		while( !Tuple_Queue.empty() )
-	// 		{
-	// 			local_ans = Tuple_link( temp_node, Tuple_Queue.top());
-	// 			if( local_ans == 1 )
-	// 			{
-	// 				temp_node.ref_begin = Tuple_Queue.top().ref_begin;
-	// 				temp_node.read_begin = Tuple_Queue.top().read_begin;
-	// 				//temp_node.tuplelength = Tuple_Queue.top().tuplelength;
-	// 				/*out << temp_node.ref_begin << "\t";
-	// 				out << temp_node.read_begin << "\n";*/
-	// 				//out << temp_node.tuplelength << endl;
-	// 			}
-	// 			Tuple_Queue.pop();
-	// 		}
+	// cout << Tuple_Queue.size() << endl;
+	// cout << ReadLength << endl;
+	// return 0;
 
-	// 		if( DISTANCE_SCORE < ReadLength - temp_node.read_begin )
-	// 			return 0;
-	// 	}
-	// }
-
-	if( Tuple_Queue.top().read_begin > 250 )
+	if ( Tuple_Queue.size() > 100000 )
 	{
+		// cout << "Large queue." << endl;
+		while( !Tuple_Queue.empty() )
+			Tuple_Queue.pop();
+		return 2;
+	}
+
+	
+	if( Tuple_Queue.top().read_begin > FL_Dis )
+	{
+		tempOutNum++;
 		while( !Tuple_Queue.empty() )
 			Tuple_Queue.pop();
 		return 0;
 	}
 	else
 	{
+		vector<Tuple> Tuple_Vector;
 		Tuple temp_node;
 		temp_node.ref_begin = Tuple_Queue.top().ref_begin;
 		temp_node.read_begin = Tuple_Queue.top().read_begin;
-		//temp_node.tuplelength = Tuple_Queue.top().tuplelength;
+		temp_node.tuplelength = 1;
 		Tuple_Queue.pop();
-		int local_ans = 0;
-			/*out << temp_node.ref_begin << "\t";
-			out << temp_node.read_begin << "\n";*/
-			//out << temp_node.tuplelength << endl;
+		Tuple_Vector.push_back(temp_node);
+
 		while( !Tuple_Queue.empty() )
 		{
-			local_ans = Tuple_link( temp_node, Tuple_Queue.top());
-			if( local_ans == 1 )
+			int flag = 0;
+			for( int i = 0 ; i < Tuple_Vector.size() ; i++ )
+			{
+				uint32_t V_read = Tuple_Vector[i].read_begin + Tuple_Vector[i].tuplelength;
+				uint32_t V_ref = Tuple_Vector[i].ref_begin + Tuple_Vector[i].tuplelength;
+				uint32_t Q_read = Tuple_Queue.top().read_begin;
+				uint32_t Q_ref = Tuple_Queue.top().ref_begin;
+				if( Q_read -  V_read == 0 && Q_ref - V_ref == 0 )
+				{
+					Tuple_Vector[i].tuplelength++;
+					flag = 1;
+				}
+			}
+			if( flag == 0 )
 			{
 				temp_node.ref_begin = Tuple_Queue.top().ref_begin;
 				temp_node.read_begin = Tuple_Queue.top().read_begin;
-				//temp_node.tuplelength = Tuple_Queue.top().tuplelength;
-				/*out << temp_node.ref_begin << "\t";
-				out << temp_node.read_begin << "\n";*/
-				//out << temp_node.tuplelength << endl;
+				temp_node.tuplelength = 1;
+				Tuple_Vector.push_back(temp_node);
 			}
 			Tuple_Queue.pop();
 		}
 
-		if( 250 < ReadLength - temp_node.read_begin )
+		for( int i = 0 ; i < Tuple_Vector.size() ; i++ )
 		{
+			// cout << Tuple_Vector[i].read_begin << "\t";
+			// cout << Tuple_Vector[i].ref_begin << "\t";
+			// cout << Tuple_Vector[i].tuplelength + kmer - 2 << "\n";
+			Tuple_Vector[i].tuplelength = Tuple_Vector[i].tuplelength + kmer - 1;
+			Track[i] = -1;
+			Score[i] = 0;
+		}
+
+		if( ReadLength - Tuple_Vector[Tuple_Vector.size()-1].read_begin - Tuple_Vector[Tuple_Vector.size()-1].tuplelength > FL_Dis )
+		{
+			tempOutNum++;
+			if( !Tuple_Vector.empty() )
+			{
+				Tuple_Vector.clear();
+			}
 			return 0;
 		}
+
+		int maxScore = 0;
+		int maxScore_pos = 0;
+
+		for( int i = 1 ; i < Tuple_Vector.size() ; i++ )
+		{
+			for( int k =  i - 1 ; k >= 0 ; k-- )
+			{
+				int local_ans = 0;
+				local_ans = Tuple_link( Tuple_Vector[k], Tuple_Vector[i]);
+				if( local_ans == 1 )
+				{
+					if( Score[i] < Score[k] + Tuple_Vector[k].tuplelength )
+					{
+						Score[i] = Score[k] + Tuple_Vector[k].tuplelength;
+						Track[i] = k;
+						if( Score[i] >= maxScore )
+						{
+							maxScore = Score[i];
+							maxScore_pos = i;
+						}
+					}
+				}
+			}
+		}
+
+		// for( int i = 0 ; i < Tuple_Vector.size() ; i++ )
+		// {
+		// 	cout << i << "\t";
+		// 	cout << Tuple_Vector[i].read_begin << "\t";
+		// 	cout << Tuple_Vector[i].ref_begin << "\t";
+		// 	cout << Tuple_Vector[i].tuplelength << "\t";
+		// 	cout << Track[i] << "\t";
+		// 	cout << Score[i] << endl;
+		// }
+		// cout << maxScore << "\t" << maxScore_pos << endl;
+		// cout << Tuple_Vector[maxScore_pos].read_begin << "\t" << Tuple_Vector[maxScore_pos].ref_begin << endl;
+
+		// cout << Tuple_link( Tuple_Vector[132], Tuple_Vector[134]) << endl;
+
+		if( maxScore == 0 && maxScore_pos == 0 )
+		{
+			// cout << "No dp route." << endl; 
+			if( !Tuple_Vector.empty() )
+				Tuple_Vector.clear();
+			return 0;
+		}
+
+		// cout << ReadLength << endl;
+		// cout << Tuple_Vector[maxScore_pos].ref_begin << endl;
+
+		if( FL_Dis < ReadLength - Tuple_Vector[maxScore_pos].read_begin - Tuple_Vector[maxScore_pos].tuplelength )
+		{
+			// cout << ReadLength - Tuple_Vector[maxScore_pos].read_begin - Tuple_Vector[maxScore_pos].tuplelength << endl;
+			// cout << "Selected by tail length: " << ReadLength - Tuple_Vector[maxScore_pos].read_begin - Tuple_Vector[maxScore_pos].tuplelength << endl;
+			tempOutNum++;
+			if( !Tuple_Vector.empty() )
+				Tuple_Vector.clear();
+			return 0;
+		}
+		else
+		{
+			//binary search
+			int flag;
+			for( int i = Track[maxScore_pos] ; i >= 0 ; i = Track[i] )
+			// for( int i = maxScore_pos ; i > 0 ; i = Track[i] )
+			{
+				// cout << Tuple_Vector[i].read_begin << "\t";
+				// cout << Tuple_Vector[i].ref_begin << "\t";
+				flag = i;
+				if( -1 == Track[i] )
+					break;
+				int link_chioce;
+				uint32_t readDiff = Tuple_Vector[i].read_begin - Tuple_Vector[Track[i]].read_begin - Tuple_Vector[Track[i]].tuplelength;
+				uint32_t refDiff = Tuple_Vector[i].ref_begin - Tuple_Vector[Track[i]].ref_begin - Tuple_Vector[Track[i]].tuplelength;
+				link_chioce = readDiff - refDiff;
+				// cout << link_chioce << "\t" << flag << endl;
+				if(link_chioce <= Bind_choice && link_chioce >= -Bind_choice)
+					continue;
+				else
+				{
+					// cout << ReadLength << "\t" << link_chioce << endl;
+					break;
+				}
+			}
+			if( Tuple_Vector[flag].read_begin > FL_Dis )
+			{
+				if( !Tuple_Vector.empty() )
+					Tuple_Vector.clear();
+				return 0;
+			}
+		}
+
+		if( !Tuple_Vector.empty() )
+			Tuple_Vector.clear();
 	}
 	return 1;
 }
@@ -551,20 +661,42 @@ int Local_aln::Tuple_link( Tuple t1, Tuple t2)
 {
 	int	distance_read_s;
 	int	distance_ref_s;
-	double	link_chioce;
+	// double	link_chioce;
 
-	distance_read_s = t2.read_begin - t1.read_begin;
-	distance_ref_s = t2.ref_begin - t1.ref_begin;
+	distance_read_s = t2.read_begin - t1.read_begin - t1.tuplelength;
+	distance_ref_s = t2.ref_begin - t1.ref_begin - t1.tuplelength;
 
-	link_chioce = distance_read_s - TransParameter * distance_ref_s;
+// **********
+	// link_chioce = distance_read_s - TransParameter * distance_ref_s;
+// **********
 	//Maybe useful
 	//distance_read_s = distance_read_s + t1.tuplelength;
 
 	// cout << t1.read_begin << "\t" << t2.read_begin << "\t";
 	// cout << t1.ref_begin << "\t" << t2.ref_begin << "\t";
-	// cout << distance_read_s << "\t" << link_chioce << endl;
+	// cout << distance_read_s << "\t" << distance_ref_s << "\t" << link_chioce << endl;
 
-	if( distance_read_s <= DISTANCE_SCORE && distance_read_s >= -DISTANCE_SCORE && link_chioce <= 50 && link_chioce >= -50 )
+	// if( distance_read_s <= DISTANCE_SCORE && distance_read_s >= 0 && link_chioce <= Bind_choice && link_chioce >= -Bind_choice && distance_ref_s >= 0 ) ///50 is too big
+	if( distance_read_s <= DISTANCE_SCORE && distance_read_s >= 0  && distance_ref_s >= 0 ) //No link_chioce
+	{	
+		// cout << t1.read_begin << "\t" << t2.read_begin << "\t";
+		// cout << t1.ref_begin << "\t" << t2.ref_begin << "\t";
+		// cout << distance_read_s << "\t" << distance_ref_s << "\t" << link_chioce << endl;
+		return 1;
+	}
+	else
+		return 0;
+}
+
+int Local_aln::Tuple_link( Tuple t1, Tuple t2, int newWL)
+{
+	int	distance_read_s;
+	int	distance_ref_s;
+
+	distance_read_s = t2.read_begin - t1.read_begin - t1.tuplelength;
+	distance_ref_s = t2.ref_begin - t1.ref_begin - t1.tuplelength;
+
+	if( distance_read_s <= newWL && distance_read_s >= 0  && distance_ref_s >= 0 ) //No link_chioce	
 		return 1;
 	else
 		return 0;
@@ -618,6 +750,7 @@ void Local_aln::Files_open(char* path, uint32_t kmer)
 
 	int movement = 2 * kmer;
 	uint64_t Kmer_code_length = 1 << movement;
+	Kmer_code_length += 1;
 
 	kmerHash = new uint32_t[Kmer_code_length];
 	if (NULL == kmerHash) {
@@ -653,12 +786,16 @@ void Local_aln::Files_open(char* path, uint32_t kmer)
 		exit(1);
 	}
 
-	readKmerhash = new ReadKmerHash[Kmer_code_length];
+	int movementR = 2 * local_seed_length;
+	uint64_t Kmer_read_length = 1 << movementR;
+	Kmer_read_length += 1;
+
+	readKmerhash = new ReadKmerHash[Kmer_read_length];
 	if (NULL == readKmerhash) {
 		fprintf(stderr,"Fail to alloc readKmerhash, now exit");
 		exit(1);
 	} 
-	for( uint32_t i = 0 ; i < Kmer_code_length ; i++ )
+	for( uint32_t i = 0 ; i < Kmer_read_length ; i++ )
 		readKmerhash[i].Kpointer1 = 0;
 
 	readSRhash = new uint32_t[READ_MAX_LENGTH];
@@ -679,6 +816,12 @@ void Local_aln::Files_open(char* path, uint32_t kmer)
 		exit(1);
 	}
 
+	transu8 = new uint8_t[READ_MAX_LENGTH];
+	if (NULL == transu8) {
+		fprintf(stderr,"Fail to alloc transu8, now exit");
+		exit(1);
+	}
+
 	Result_way = new uint32_t*[SEED_NUM];
 	for( int i = 0 ; i < SEED_NUM ; i++ )
 		Result_way[i] = new uint32_t[UpBound];
@@ -688,6 +831,18 @@ void Local_aln::Files_open(char* path, uint32_t kmer)
 		fprintf(stderr,"Fail to alloc RCRead, now exit");
 		exit(1);
 	}
+
+	Track = new int[READ_MAX_LENGTH];
+	if (NULL == Track) {
+		fprintf(stderr,"Fail to alloc Track, now exit");
+		exit(1);
+	} 
+	Score = new int[READ_MAX_LENGTH];
+	if (NULL == Score) {
+		fprintf(stderr,"Fail to alloc Score, now exit");
+		exit(1);
+	} 
+
 }
 
 
@@ -714,6 +869,9 @@ void Local_aln::Cleaning()
 	if (NULL != tempArrayNext)
 		delete[] tempArrayNext;
 
+	if (NULL != transu8)
+		delete[] transu8;
+
 	if (NULL != RCRead)
 		delete[] RCRead;
 
@@ -721,4 +879,10 @@ void Local_aln::Cleaning()
 		for (int i=0;i<SEED_NUM;++i) { delete[] Result_way[i]; }
 		delete[] Result_way;
 	}
+
+	if( Score != NULL )
+		delete[] Score;
+
+	if( Track != NULL )
+		delete[] Track;
 }
