@@ -1,8 +1,0 @@
-#pbsim
-
-./3rd_SV_detection/pbsim-1.0.3-Linux-amd64/Linux-amd64/bin/pbsim --data-type CLR --depth 20 --length-mean 8000 --length-min 100 --length-max 25000 --model_qc 3rd_SV_detection/pbsim-1.0.3-Linux-amd64/data/model_qc_clr  --prefix /data/tjiang/Reads.50/ --difference-ratio 1:12:2 --accuracy-min 0.8 --accuracy-mean 0.85 Rtest/genome_rearranged.fasta
-
-#blasr
-
-./blasr SRR1502782_filter.fastq ~/hg19.new.fa -sa hg19.fa.sa -bestn 2 -maxAnchorsPerPosition 100 -advanceExactMatches 10 -affineAlign -affineOpen 100 -affineExtend 0 -clipping subread -sam -out SRR1502782_filter.fastq.sam
-
