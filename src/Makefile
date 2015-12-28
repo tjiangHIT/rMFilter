@@ -10,8 +10,8 @@ INDSOURCES=Index.cpp mk_hash.cpp readfl.cpp Ctrl_option.cpp
 INDOBJECTS=$(INDSOURCES:.cpp=.o) $(KSWSOURCE:.c=.o)
 ALGNOBJECTS=$(ALGNSOURCES:.cpp=.o) $(KSWSOURCE:.c=.o)
 
-INDEXER=VRDT-indexer
-ALIGNER=VRDT-aligner
+INDEXER=rMFilter-indexer
+ALIGNER=rMFilter-aligner
 
 all: $(INDSOURCES) $(ALGNSOURCES) $(ALIGNER) $(INDEXER) $(KSWSOURCE)
 	

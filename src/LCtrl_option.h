@@ -7,7 +7,7 @@ typedef struct
 	uint8_t		len_kmer;
 	char		read_path[PATH_LEN];
 	char		hash_dir[PATH_LEN];
-	// float		CandidateRatio;
+	float		CandidateRatio;
 	int		thread;
 	/*#define SEED_NUM 1000
 	#define UpBound 1000

@@ -57,9 +57,9 @@ int RevComRead(char *rcread,char *read,int len_read)
 
 int Get_Max_range( uint32_t *array )
 {
-	int	i = 0;
-	int	score = 0;
-	int 	MaxScore = 0;
+	int i = 0;
+	int score = 0;
+	int     MaxScore = 0;
 	for( i = 0; i < SEED_NUM; ++i )
 	{
 		if( array[i] == 0 )
@@ -79,8 +79,8 @@ int Get_Max_range( uint32_t *array )
 
 int Local_aln::Tuple_link( Tuple t1, Tuple t2)
 {
-	int	distance_read_s;
-	int	distance_ref_s;
+	int distance_read_s;
+	int distance_ref_s;
 
 	distance_read_s = t2.read_begin - t1.read_begin - t1.tuplelength;
 	distance_ref_s = t2.ref_begin - t1.ref_begin - t1.tuplelength;
@@ -93,13 +93,13 @@ int Local_aln::Tuple_link( Tuple t1, Tuple t2)
 
 int Local_aln::Tuple_link( Tuple t1, Tuple t2, int newWL)
 {
-	int	distance_read_s;
-	int	distance_ref_s;
+	int distance_read_s;
+	int distance_ref_s;
 
 	distance_read_s = t2.read_begin - t1.read_begin - t1.tuplelength;
 	distance_ref_s = t2.ref_begin - t1.ref_begin - t1.tuplelength;
 
-	if( distance_read_s <= newWL && distance_read_s >= 0  && distance_ref_s >= 0 ) //No link_chioce	
+	if( distance_read_s <= newWL && distance_read_s >= 0  && distance_ref_s >= 0 ) //No link_chioce 
 		return 1;
 	else
 		return 0;
@@ -129,13 +129,13 @@ PreRead Local_aln::FindStart(char *Seq, bool Direction, uint32_t ReadLength, uin
 				Result_way[i][j] = SR_HASH[j+kmerHash[l2r]];
 				if( Result_way[i][j] >= bias )
 					Result_way[i][j] = Result_way[i][j] - bias;
-				else	Result_way[i][j] = 0;
+				else    Result_way[i][j] = 0;
 			}
 		}
 	}
 
-	priority_queue<Node>		windowQueue;
-	priority_queue<PreRead_>	pre_read_Queue;
+	priority_queue<Node>        windowQueue;
+	priority_queue<PreRead_>    pre_read_Queue;
 
 	//uint32_t judge_element = -1, count_element = 0;
 	CF region;
@@ -262,13 +262,13 @@ int Local_aln::Judge_SV(char *Seq, uint32_t ReadLength, uint32_t GU, uint32_t GD
 	{
 		flag = tempArrayNext[i];
 		uint32_t add = readKmerhash[flag].Kpointer2;
- 		readSRhash[add] = i;
+		readSRhash[add] = i;
 		readKmerhash[flag].Kpointer2++;
 	}
 
-	priority_queue<Tuple>	Tuple_Queue;	
+	priority_queue<Tuple>   Tuple_Queue;    
 	pre = transfer(genome, kmer, GU);
-	pre = ((pre>>2)&mask);	
+	pre = ((pre>>2)&mask);  
 	for( uint32_t i = 0 ; i < GD - GU ; ++i )
 	{
 		Tuple temp_node;
@@ -384,12 +384,12 @@ int Local_aln::Judge_SV(char *Seq, uint32_t ReadLength, uint32_t GU, uint32_t GD
 
 		// for( int i = 0 ; i < Tuple_Vector.size() ; i++ )
 		// {
-		// 	cout << i << "\t";
-		// 	cout << Tuple_Vector[i].read_begin << "\t";
-		// 	cout << Tuple_Vector[i].ref_begin << "\t";
-		// 	cout << Tuple_Vector[i].tuplelength << "\t";
-		// 	cout << Track[i] << "\t";
-		// 	cout << Score[i] << endl;
+		//  cout << i << "\t";
+		//  cout << Tuple_Vector[i].read_begin << "\t";
+		//  cout << Tuple_Vector[i].ref_begin << "\t";
+		//  cout << Tuple_Vector[i].tuplelength << "\t";
+		//  cout << Track[i] << "\t";
+		//  cout << Score[i] << endl;
 		// }
 		// cout << maxScore << "\t" << maxScore_pos << endl;
 		// cout << Tuple_Vector[maxScore_pos].read_begin << "\t" << Tuple_Vector[maxScore_pos].ref_begin << endl;
@@ -447,103 +447,65 @@ int Local_aln::Judge_SV(char *Seq, uint32_t ReadLength, uint32_t GU, uint32_t GD
 	return 1;
 }
 
-char Local_aln::local_aln(kseq_t *Seq, ReadKmerHash *readKmerhash,  uint32_t *readSRhash, uint32_t *tempArray, uint32_t *tempArrayNext, uint32_t **Result_way, char *RCRead, int *Track, int *Score, Options *opt)
+PreRead Local_aln::acquirePre(kseq_t *Seq, uint32_t **Result_way, char *RCRead, Options *opt)
 {
-	PreRead 	preread_1;
-	PreRead 	preread_2;
+	PreRead     preread_1;
+	PreRead     preread_2;
 
 	RevComRead(RCRead, Seq->seq.s, Seq->seq.l);
 	preread_1 = FindStart(Seq->seq.s, true, Seq->seq.l, opt->len_kmer, Result_way);
 	preread_2 = FindStart(RCRead, false, Seq->seq.l, opt->len_kmer, Result_way);
-	if( preread_1.cover_score > preread_2.cover_score )
+
+	if( preread_1.cover_score > preread_2.cover_score ) return preread_1;
+	else return preread_2;
+}
+
+void Local_aln::deal_preread(PreRead pre, uint32_t count)
+{
+	localscore[count] = pre.cover_score;
+	localPreRead[count].Win_Begin_start = pre.Win_Begin_start;
+	localPreRead[count].Win_Begin_end = pre.Win_Begin_end;
+	localPreRead[count].direction = pre.direction;
+	localPreRead[count].cover_score = pre.cover_score;
+}
+
+char Local_aln::local_aln(kseq_t *Seq, PreRead preread, ReadKmerHash *readKmerhash,  uint32_t *readSRhash, uint32_t *tempArray, uint32_t *tempArrayNext, char *RCRead, int *Track, int *Score, Options *opt)
+{
+	if( Threshold > preread.cover_score )
 	{
-		if( preread_1.cover_score < 20 )
-		{
-			// cout << Seq->name.s << "\tS\t" << preread_1.cover_score << endl;
-			return 'S';
-		}
-		else if( preread_1.cover_score > UpBound )
-		{
-			// cout << Seq->name.s << "\tS\t" << preread_1.cover_score << endl;
-			return 'S';
-		}
-		else
-		{
-			int SV_flag = 1;
-			uint32_t start = preread_1.Win_Begin_start;
-			uint32_t end = preread_1.Win_Begin_end;
-			start = start * Hpart;
-			end = end * Hpart + Extend + Seq->seq.l;
-			if( start < Extend )
-				start = 0;
-			else
-				start = start - Extend;
-			if( end > len_genome - opt->len_kmer )
-				end = len_genome - opt->len_kmer;
-			int judge;
-			judge = Judge_SV(Seq->seq.s, Seq->seq.l, start, end, readKmerhash, readSRhash, tempArray, tempArrayNext, Track, Score);
-			SV_flag = SV_flag * judge;
-			if( SV_flag == 1 )
-			{
-				// cout << Seq->name.s << "\tN\t"  << preread_1.cover_score << endl;
-				return 'N';
-			}
-			else if( SV_flag == 2 )
-			{
-				// cout << Seq->name.s << "\tJ\t" << preread_1.cover_score << endl;
-				return 'J';
-			}
-			else
-			{
-				// cout << Seq->name.s << "\tT\t" << preread_1.cover_score << endl;
-				return 'T';
-			}
-		}
+		// cout << Seq->name.s << "\tT\t" << preread.cover_score << endl;
+		return 'T';
+	}
+	RevComRead(RCRead, Seq->seq.s, Seq->seq.l);
+	int SV_flag = 1;
+	uint32_t start = preread.Win_Begin_start;
+	uint32_t end = preread.Win_Begin_end;
+	start = start * Hpart;
+	end = end * Hpart + Extend + Seq->seq.l;
+	if( start < Extend ) start = 0;
+	else start = start - Extend;
+	if( end > len_genome - opt->len_kmer )
+		end = len_genome - opt->len_kmer;
+	int judge;
+	if( preread.direction == true )
+		judge = Judge_SV(Seq->seq.s, Seq->seq.l, start, end, readKmerhash, readSRhash, tempArray, tempArrayNext, Track, Score);
+	else
+		judge = Judge_SV(RCRead, Seq->seq.l, start, end, readKmerhash, readSRhash, tempArray, tempArrayNext, Track, Score);
+	SV_flag = SV_flag * judge;
+	if( SV_flag == 1 )
+	{
+		// cout << Seq->name.s << "\tN\t"  << preread.cover_score << endl;
+		return 'N';
+	}
+	else if( SV_flag == 2 )
+	{
+		// cout << Seq->name.s << "\tJ\t" << preread.cover_score << endl;
+		return 'J';
 	}
 	else
 	{
-		if( preread_2.cover_score < 20 )
-		{
-			// cout << Seq->name.s << "\tS\t" << preread_2.cover_score << endl;
-			return 'S';
-		}
-		else if( preread_2.cover_score > UpBound )
-		{
-			// cout << Seq->name.s << "\tS\t" << preread_2.cover_score << endl;
-			return 'S';
-		}
-		else
-		{
-			int SV_flag = 1;
-			uint32_t start = preread_2.Win_Begin_start;
-			uint32_t end = preread_2.Win_Begin_end;
-			start = start * Hpart;
-			end = end * Hpart + Extend + Seq->seq.l;
-			if( start < Extend )
-				start = 0;
-			else
-				start = start - Extend;
-			if( end > len_genome - opt->len_kmer )
-				end = len_genome - opt->len_kmer;
-			int judge;
-			judge = Judge_SV(RCRead, Seq->seq.l, start, end, readKmerhash, readSRhash, tempArray, tempArrayNext, Track, Score);
-			SV_flag = SV_flag * judge;
-			if( SV_flag == 1 )
-			{
-				// cout << Seq->name.s << "\tN\t"  << preread_2.cover_score << endl;
-				return 'N';
-			}
-			else if( SV_flag == 2 )
-			{
-				// cout << Seq->name.s << "\tJ\t" << preread_2.cover_score << endl;
-				return 'J';
-			}
-			else
-			{
-				// cout << Seq->name.s << "\tT\t" << preread_2.cover_score << endl;
-				return 'T';
-			}
-		}
+		// cout << Seq->name.s << "\tT\t" << preread.cover_score << endl;
+		return 'T';
 	}
 	return 'I';
 }
@@ -551,7 +513,7 @@ char Local_aln::local_aln(kseq_t *Seq, ReadKmerHash *readKmerhash,  uint32_t *re
 int Local_aln::n_seq_read(kstream_t *_fp, kseq_t *_Seq, int n_needed)
 {
 	kseq_t *temp = _Seq;
-	int i = 0;	
+	int i = 0;  
 	while( i <n_needed && (temp[i].f = _fp) && kseq_read(temp+i)>=0 ) ++i;
 	return i;
 }
@@ -593,8 +555,27 @@ void *thread_worker(void *data)
 		if (_read_seq < part_thread->n_seq)
 		{
 			char flag;
-			flag = part_thread->aln->local_aln( part_thread->seq + _read_seq, part_thread->readKmerhash, part_thread->readSRhash, part_thread->tempArray, part_thread->tempArrayNext, part_thread->Result_way, part_thread->RCRead, part_thread->Track, part_thread->Score, part_thread->opt);
+			flag = part_thread->aln->local_aln(part_thread->seq + _read_seq, part_thread->aln->localPreRead[part_thread->round_n + _read_seq], part_thread->readKmerhash,  part_thread->readSRhash, part_thread->tempArray, part_thread->tempArrayNext, part_thread->RCRead, part_thread->Track, part_thread->Score, part_thread->opt);
 			part_thread->out_flag[_read_seq] = flag;
+		}
+		else
+			break;
+	}
+}
+
+void *thread_worker_score(void *data)
+{
+	ParT *part_thread = (ParT *)data;
+	int _read_seq;
+	while (1) {
+		pthread_rwlock_wrlock(&rwlock);
+		_read_seq = read_seq++;
+		pthread_rwlock_unlock(&rwlock);
+		if (_read_seq < part_thread->n_seq)
+		{
+			PreRead thispreread;
+			thispreread = part_thread->aln->acquirePre(part_thread->seq + _read_seq, part_thread->Result_way, part_thread->RCRead, part_thread->opt);
+			part_thread->aln->deal_preread(thispreread, part_thread->round_n + _read_seq);
 		}
 		else
 			break;
@@ -654,7 +635,7 @@ void Local_aln::process(Options *opt)
 	uint64_t Kmer_code_length = transKmer2Length( opt->len_kmer );
 	// Kmer_code_length += 1;
 	kmerHash = new uint32_t[Kmer_code_length];
-	if (NULL == kmerHash) { fprintf(stderr,"Fail to alloc kmerHash, now exit"); 	exit(1); } 
+	if (NULL == kmerHash) { fprintf(stderr,"Fail to alloc kmerHash, now exit");     exit(1); } 
 
 	FILE * file_hash_1;
 	char *hash1_path = NULL;
@@ -663,7 +644,7 @@ void Local_aln::process(Options *opt)
 	delete[] hash1_path;
 	fread( kmerHash, sizeof(uint32_t), Kmer_code_length, file_hash_1 );
 	fclose(file_hash_1);
-	if (NULL == kmerHash) { fprintf(stderr,"Fail to load kmerHash, now exit"); 	exit(1); }
+	if (NULL == kmerHash) { fprintf(stderr,"Fail to load kmerHash, now exit");  exit(1); }
 
 	SR_HASH = new uint32_t[Hash2sum];
 	if (NULL == SR_HASH) { fprintf(stderr,"Fail to alloc SR_HASH, now exit"); exit(1); } 
@@ -677,14 +658,28 @@ void Local_aln::process(Options *opt)
 	fclose(file_hash_2); 
 	if (NULL == SR_HASH) { fprintf(stderr,"Fail to load SR_HASH, now exit"); exit(1); }
 
+	gzFile fp_cal;
+	read_cal = 0;
+	fp_cal = gzopen(opt->read_path, "r");
+	kseq_t *seq_cal = kseq_init(fp_cal);
+	while (kseq_read(seq_cal) >= 0) read_cal++;
+	kseq_destroy(seq_cal);
+	gzclose(fp_cal);
+
+	localscore = new uint32_t[read_cal];
+	if (NULL == localscore) { fprintf(stderr,"Fail to alloc localscore, now exit"); exit(1); } 
+
+	localPreRead = new PreRead[read_cal];
+	if (NULL == localPreRead) { fprintf(stderr,"Fail to alloc localPreRead, now exit"); exit(1); } 
+
+	gzFile fp_score;
+	fp_score = gzopen(opt->read_path, "r");
+
 	gzFile fp;
 	fp = gzopen(opt->read_path, "r");
 
 	if( opt->thread <= 1)
 	{
-		// int movementR = 2 * local_seed_length;
-		// uint64_t Kmer_read_length = 1 << movementR;
-		// Kmer_read_length += 1;
 		uint64_t Kmer_read_length = transKmer2Length( local_seed_length );
 
 		ReadKmerHash *readKmerhash = new ReadKmerHash[Kmer_read_length];
@@ -714,11 +709,31 @@ void Local_aln::process(Options *opt)
 		int* Score = new int[READ_MAX_LENGTH];
 		if (NULL == Score) { fprintf(stderr,"Fail to alloc Score, now exit"); exit(1); } 
 
+		kseq_t *Seq_score = kseq_init(fp_score);
+		uint32_t cycletime = 0;
+		while(kseq_read(Seq_score) >= 0)
+		{
+			PreRead thispreread;
+			thispreread = acquirePre(Seq_score, Result_way, RCRead, opt);
+			deal_preread(thispreread, cycletime);
+			cycletime++;
+		}
+		kseq_destroy(Seq_score);
+
+		//sort
+		qsort(localscore, read_cal, sizeof(uint32_t), compare);
+		uint32_t Threshold_pos = read_cal * opt->CandidateRatio;
+		Threshold = localscore[Threshold_pos];
+
+		// cout << Threshold << endl;
+
 		kseq_t *Seq = kseq_init(fp);
+		cycletime = 0;
 		while (kseq_read(Seq) >= 0) 
 		{
 			char flag;
-			flag = local_aln( Seq, readKmerhash,  readSRhash, tempArray, tempArrayNext, Result_way, RCRead, Track, Score, opt);
+			flag = local_aln(Seq, localPreRead[cycletime], readKmerhash,  readSRhash, tempArray, tempArrayNext, RCRead, Track, Score, opt);
+			cycletime++;
 			output( Seq, flag);
 		}
 		kseq_destroy(Seq);
@@ -745,10 +760,7 @@ void Local_aln::process(Options *opt)
 			readKmerhash[i] = new ReadKmerHash[Kmer_read_length];
 		for( int i = 0; i< opt->thread; ++i )
 		{
-			for( int j = 0; j < Kmer_read_length; ++j )
-			{
-				readKmerhash[i][j].Kpointer1 = 0;
-			}
+			for( int j = 0; j < Kmer_read_length; ++j ) readKmerhash[i][j].Kpointer1 = 0;
 		}
 		uint32_t** readSRhash = new uint32_t*[opt->thread];
 		if (NULL == readSRhash) { fprintf(stderr,"Fail to alloc readSRhash, now exit"); exit(1); } 
@@ -783,16 +795,54 @@ void Local_aln::process(Options *opt)
 		for( int i = 0; i< opt->thread; ++i )
 			Score[i] = new int [READ_MAX_LENGTH];
 
+
+		//step2
+		kstream_t *_fp_score = ks_init(fp_score);
+		int seq_num;
+		int n_needed = 5000;
+		kseq_t *seq_socre = (kseq_t *)calloc(n_needed, sizeof(kseq_t));
+		if( NULL == seq_socre ) { fprintf(stderr, "Failed when applying for new space! now exit"); exit(1);}
+
+		ParT *part_thread = thread_initiate(readKmerhash, readSRhash, tempArray, tempArrayNext, Result_way, RCRead, Track, Score, opt, this);
+		uint32_t cycletime = 0;
+		pthread_rwlock_init(&rwlock, NULL);
+		while((seq_num = n_seq_read(_fp_score, seq_socre, n_needed))>0)
+		{
+			read_seq = 0;
+			pthread_t *tid;
+			tid = (pthread_t*)calloc(opt->thread, sizeof(pthread_t));
+			for (int j = 0; j < opt->thread; ++j)
+			{
+				part_thread[j].tid = j;
+				part_thread[j].n_seq = seq_num;
+				part_thread[j].seq = seq_socre;
+				part_thread[j].round_n = cycletime * n_needed;
+				pthread_create(&tid[j], NULL, thread_worker_score, part_thread + j);
+			}
+			for (int j = 0; j < opt->thread; ++j) pthread_join(tid[j], 0);
+			free(tid);
+			cycletime++;
+		}
+		pthread_rwlock_destroy(&rwlock);
+		if (NULL != seq_socre) free(seq_socre);
+		if (NULL != _fp_score)  free(_fp_score);
+
+		qsort(localscore, read_cal, sizeof(uint32_t), compare);
+		uint32_t Threshold_pos = read_cal *  opt->CandidateRatio;
+		Threshold = localscore[Threshold_pos];
+
+		// cout << Threshold << endl;
+
 		//deal
+		cycletime = 0;
 		kstream_t *_fp = ks_init(fp);
 		int n_Seq;
-		int n_needed = 5000;
 		kseq_t *Seq = (kseq_t *)calloc(n_needed, sizeof(kseq_t));
-		if (Seq == NULL)  { fprintf(stderr, "Failed when applying for new space! now exit"); exit(1);}
+		if (Seq == NULL) { fprintf(stderr, "Failed when applying for new space! now exit"); exit(1);}
 		char *out_flag = new char[n_needed];
 		if (NULL == out_flag) { fprintf(stderr,"Fail to alloc out_flag, now exit"); exit(1); } 
 
-		ParT *part_thread = thread_initiate(readKmerhash, readSRhash, tempArray, tempArrayNext, Result_way, RCRead, Track, Score, opt, this);
+		// ParT *part_thread = thread_initiate(readKmerhash, readSRhash, tempArray, tempArrayNext, Result_way, RCRead, Track, Score, opt, this);
 		pthread_rwlock_init(&rwlock, NULL);
 
 		while((n_Seq = n_seq_read(_fp, Seq, n_needed))>0)
@@ -806,17 +856,21 @@ void Local_aln::process(Options *opt)
 				part_thread[j].n_seq = n_Seq;
 				part_thread[j].seq = Seq;
 				part_thread[j].out_flag = out_flag;
+				part_thread[j].round_n = cycletime * n_needed;
 				pthread_create(&tid[j], NULL, thread_worker, part_thread + j);
 			}
 			for (int j = 0; j < opt->thread; ++j) pthread_join(tid[j], 0);
 			free(tid);
 			for( int i = 0; i < n_Seq; ++i ) output(Seq+i, out_flag[i]);
+			cycletime++;
 		}
 		//free
 		pthread_rwlock_destroy(&rwlock);
 		if (NULL != Seq) free(Seq);
 		if (NULL != _fp)  free(_fp);
 		if (NULL != out_flag) delete[] out_flag;
+
+
 		if (NULL != readKmerhash) {
 			for (int i=0;i<opt->thread;++i) { delete[] readKmerhash[i]; }
 			delete[] readKmerhash;
@@ -854,11 +908,14 @@ void Local_aln::process(Options *opt)
 			for (int i=0;i<opt->thread;++i) { delete[] Score[i]; }
 			delete[] Score;
 		}
-
 	}
+	gzclose(fp_score);
 	gzclose(fp);
 
 	if (NULL != genome) delete[] genome;
 	if (NULL != kmerHash) delete[] kmerHash;
-	if (NULL != SR_HASH) delete[] SR_HASH;	
+	if (NULL != SR_HASH) delete[] SR_HASH;
+	if (NULL != localscore) delete[] localscore;
+	if (NULL != localPreRead) delete[] localPreRead;
+	// return Threshold;
 }

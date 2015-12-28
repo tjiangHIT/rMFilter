@@ -6,9 +6,9 @@
 #include <string.h>
 #include <stdlib.h>
 
-const char *short_options = "hl:t:";
+const char *short_options = "r:hl:t:";
 struct option long_options[] = {
-	// { "ratio",     1,   NULL,    'r' },
+	{ "ratio",     1,   NULL,    'r' },
 	{"help",	0,	NULL,	'h'},
 	{"seed_length",	1,	NULL,	'l'},
 	{ "threads",     1,   NULL,    't'   },
@@ -20,7 +20,7 @@ struct option long_options[] = {
 LCtrl_option::LCtrl_option(Options *opt)
 {
 	opt->len_kmer = 15;
-	// opt->CandidateRatio = 0;
+	opt->CandidateRatio = 0;
 	opt->thread = 1;
 }
 
@@ -33,7 +33,7 @@ int LCtrl_option::Usage()
 	fprintf(stderr, "Usage:     Alignment [Options] <HashIndexDir> <Reads>\n\n"); 
 	fprintf(stderr, "Options:   -h, --help                   help\n"); 
  	fprintf(stderr, "           -t, --threads       <int>    thread [1]\n"); 
-	// fprintf(stderr, "           -r, --ratio         <int>    candidate ratio [0.0]\n"); 
+	fprintf(stderr, "           -r, --ratio         <int>    candidate ratio [0.00]\n"); 
 	//fprintf(stderr, "           -m, --hit_max       <int>    max hit times of a seed [1000]\n"); 
 	fprintf(stderr, "           -l, --seed_length   <int>    seed length of hash index [15]\n"); 
 	//fprintf(stderr, "           -a, --auto_load              load hash table from hash file without produce hash file");
@@ -52,9 +52,9 @@ int LCtrl_option::opt_parse(int argc, char *argv[], Options* opt)
 	{
 		switch(c)
 		{
-			// case 'r':
-			// 	opt->CandidateRatio = atof(optarg);
-			// 	break;
+			case 'r':
+				opt->CandidateRatio = atof(optarg);
+				break;
 			case 'h':
 				return Usage();
 				break;
@@ -84,7 +84,7 @@ void LCtrl_option::show_parameters(Options* opt)
 	fprintf(stderr, "\n"); 
 	fprintf(stderr, ":::: Simulation parameters :::\n"); 
 	fprintf(stderr, "\n"); 
-	// fprintf(stderr, "CandidateRatio: %.2f\n", opt->CandidateRatio); 
+	fprintf(stderr, "CandidateRatio: %.2f\n", opt->CandidateRatio); 
 	fprintf(stderr, "threads:        %d\n", opt->thread); 
 	fprintf(stderr, "seed_length:    %u\n", opt->len_kmer); 
 	fprintf(stderr, "HashIndexDir:   %s\n", opt->hash_dir); 

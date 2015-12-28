@@ -26,6 +26,7 @@
 #define FL_Dis 448//250
 #define Bind_choice 50
 // #define TransParameter 1//{1,1.1}
+ // #define CandidateRatio 0.1
 
 #define local_seed_length 11
 
@@ -99,12 +100,18 @@ class Local_aln
 	uint32_t		Hash2sum;
 	uint32_t		len_genome;
 	uint8_t		*transu8;
+	uint32_t		read_cal;
+	uint32_t		*localscore;
+	uint32_t		Threshold;
 	
 public:
+	PreRead 	*localPreRead;
 	void process(Options *opt);
-	char local_aln(kseq_t *Seq, ReadKmerHash *readKmerhash,  uint32_t *readSRhash, uint32_t *tempArray, 
-		uint32_t *tempArrayNext, uint32_t **Result_way, char *RCRead, int *Track, int *Score, Options *opt);
+	char local_aln(kseq_t *Seq, PreRead preread, ReadKmerHash *readKmerhash,  uint32_t *readSRhash, 
+		uint32_t *tempArray, uint32_t *tempArrayNext, char *RCRead, int *Track, int *Score, Options *opt);
 	// int local_aln(char *path, uint32_t kmer);
+	PreRead acquirePre(kseq_t *Seq, uint32_t **Result_way, char *RCRead, Options *opt);
+	void deal_preread(PreRead pre, uint32_t count);
 	PreRead FindStart(char *Seq, bool direction, uint32_t ReadLength, uint32_t kmer, uint32_t **Result_way);
 	int Judge_SV(char *Seq, uint32_t ReadLength, uint32_t GU, uint32_t GD, ReadKmerHash *readKmerhash, uint32_t *readSRhash, 
 		uint32_t *tempArray, uint32_t *tempArrayNext, int *Track, int *Score);
@@ -130,6 +137,7 @@ typedef struct
 	int *Score;
 	Options *opt;
 	char *out_flag;
+	uint32_t round_n;
 }ParT;
 
 #endif
