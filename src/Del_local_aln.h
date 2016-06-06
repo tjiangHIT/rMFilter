@@ -102,7 +102,8 @@ class Local_aln
 	uint8_t		*transu8;
 	uint32_t		read_cal;
 	uint32_t		*localscore;
-	uint32_t		Threshold;
+	uint32_t		Threshold_below;
+	uint32_t		Threshold_up;
 	
 public:
 	PreRead 	*localPreRead;

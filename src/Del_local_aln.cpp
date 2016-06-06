@@ -471,7 +471,7 @@ void Local_aln::deal_preread(PreRead pre, uint32_t count)
 
 char Local_aln::local_aln(kseq_t *Seq, PreRead preread, ReadKmerHash *readKmerhash,  uint32_t *readSRhash, uint32_t *tempArray, uint32_t *tempArrayNext, char *RCRead, int *Track, int *Score, Options *opt)
 {
-	if( Threshold > preread.cover_score )
+	if( Threshold_below > preread.cover_score || Threshold_up < preread.cover_score )
 	{
 		// cout << Seq->name.s << "\tT\t" << preread.cover_score << endl;
 		return 'T';
@@ -722,10 +722,14 @@ void Local_aln::process(Options *opt)
 
 		//sort
 		qsort(localscore, read_cal, sizeof(uint32_t), compare);
-		uint32_t Threshold_pos = read_cal * opt->CandidateRatio;
-		Threshold = localscore[Threshold_pos];
+		uint32_t Threshold_pos_below = read_cal * opt->CandidateRatio;
+		uint32_t Threshold_pos_up = read_cal * ( 1.0 - opt->CandidateRatio );
+		if( Threshold_pos_up == read_cal ) Threshold_pos_up = Threshold_pos_up - 1;
+		Threshold_below = localscore[Threshold_pos_below];
+		Threshold_up = localscore[Threshold_pos_up];
 
 		// cout << Threshold << endl;
+		// cout << Threshold_below << "\t" << Threshold_up << endl;
 
 		kseq_t *Seq = kseq_init(fp);
 		cycletime = 0;
@@ -828,8 +832,15 @@ void Local_aln::process(Options *opt)
 		if (NULL != _fp_score)  free(_fp_score);
 
 		qsort(localscore, read_cal, sizeof(uint32_t), compare);
-		uint32_t Threshold_pos = read_cal *  opt->CandidateRatio;
-		Threshold = localscore[Threshold_pos];
+		uint32_t Threshold_pos_below = read_cal * opt->CandidateRatio;
+		uint32_t Threshold_pos_up = read_cal * ( 1.0 - opt->CandidateRatio );
+		if( Threshold_pos_up == read_cal ) Threshold_pos_up = Threshold_pos_up - 1;
+		Threshold_below = localscore[Threshold_pos_below];
+		Threshold_up = localscore[Threshold_pos_up];
+
+		// cout << read_cal << endl;
+		// cout << opt->CandidateRatio << "\t" << 1.0 - opt->CandidateRatio << endl;
+		// cout << Threshold_below << "\t" << Threshold_up << endl;
 
 		// cout << Threshold << endl;
 

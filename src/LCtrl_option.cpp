@@ -84,7 +84,7 @@ void LCtrl_option::show_parameters(Options* opt)
 	fprintf(stderr, "\n"); 
 	fprintf(stderr, ":::: Simulation parameters :::\n"); 
 	fprintf(stderr, "\n"); 
-	fprintf(stderr, "CandidateRatio: %.2f\n", opt->CandidateRatio); 
+	fprintf(stderr, "CandidateRatio: %.4f\n", opt->CandidateRatio); 
 	fprintf(stderr, "threads:        %d\n", opt->thread); 
 	fprintf(stderr, "seed_length:    %u\n", opt->len_kmer); 
 	fprintf(stderr, "HashIndexDir:   %s\n", opt->hash_dir); 
