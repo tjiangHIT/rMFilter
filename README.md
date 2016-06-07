@@ -15,6 +15,13 @@ Acceleration of long read-based structure variation detection with chimeric read
 The memory usage of rMFilter can fit the configurations of most modern servers and workstations.
 Its peak memory footprint is about 18.00 Gigabytes (default setting), on a server with Intel Xeon CPU at 2.00 GHz, 1 Terabytes RAM running Linux Ubuntu 14.04. These reads were aligned to human reference genome GRCh37/hg19.
 
+###Installation
+
+Current version of rMFilter needs to be run on Linux operating system.
+The source code is written in C++, and can be directly download from: https://github.com/hitbc/rMFilter 
+A mirror is also in: https://github.com/tjiangHIT/rMFilter
+The makefile is attached. Use the make command for generating the executable file.
+
 
 ###Contact
 For advising, bug reporting and requiring help, please contact ydwang@hit.edu.cn or tjiang@hit.edu.cn
