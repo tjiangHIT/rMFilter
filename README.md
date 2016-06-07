@@ -24,8 +24,10 @@ The makefile is attached. Use the make command for generating the executable fil
 
 ###Synopsis
 Reference genome indexing
+	
 	rMFilter-indexer [-k kmerSize] <HashIndexDir> <Reference>
 Read alignment & filtering
+	
 	rMFilter-aligner [-k kmerSize] [-t threadNumber] <HashIndexDir> <ReadFile>
 
 
