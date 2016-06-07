@@ -2,10 +2,11 @@
 Acceleration of long read-based structure variation detection with chimeric read filtering
 
 ###Getting Start
-	git clone https://github.com/hitbc/LAMSA.git
-	cd LAMSA; make
-	./lamsa index ref.fa
-	./lamsa aln ref.fa read.fq > aln.sam
+	git clone https://github.com/tjiangHIT/rMFilter.git
+	cd rMFilter
+	make
+	./rMFilter-indexer indexDir ref.fa
+	./rMFilter-aligner indexDir read.fq > read.filter.fq
 
 ###Contact
 For advising, bug reporting and requiring help, please contact ydwang@hit.edu.cn or tjiang@hit.edu.cn
