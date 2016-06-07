@@ -20,7 +20,7 @@ const char *short_options = "r:hl:t:";
 struct option long_options[] = {
 	{ "ratio",     1,   NULL,    'r' },
 	{"help",	0,	NULL,	'h'},
-	{"seed_length",	1,	NULL,	'l'},
+	{"kmerSize",	1,	NULL,	'k'},
 	{ "threads",     1,   NULL,    't'   },
 	//{ "hit_max",		1,NULL,	'm'},
 	//{ "auto_load", 0, NULL, 'a'},
@@ -45,7 +45,7 @@ int LCtrl_option::Usage()
  	fprintf(stderr, "           -t, --threads       <int>    thread [1]\n"); 
 	fprintf(stderr, "           -r, --ratio         <int>    candidate ratio [0.00]\n"); 
 	//fprintf(stderr, "           -m, --hit_max       <int>    max hit times of a seed [1000]\n"); 
-	fprintf(stderr, "           -l, --seed_length   <int>    seed length of hash index [15]\n"); 
+	fprintf(stderr, "           -k, --kmerSize   <int>    kmer size of hash index [15]\n"); 
 	//fprintf(stderr, "           -a, --auto_load              load hash table from hash file without produce hash file");
 	//fprintf(stderr, "           -c, --write_cigar            print cigar in XA fields [False]\n"); 
 	fprintf(stderr, "\n"); 
@@ -68,7 +68,7 @@ int LCtrl_option::opt_parse(int argc, char *argv[], Options* opt)
 			case 'h':
 				return Usage();
 				break;
-			case 'l':
+			case 'k':
 				opt->len_kmer = atoi(optarg);
 				break;
 			case 't':
@@ -96,7 +96,7 @@ void LCtrl_option::show_parameters(Options* opt)
 	fprintf(stderr, "\n"); 
 	fprintf(stderr, "CandidateRatio: %.4f\n", opt->CandidateRatio); 
 	fprintf(stderr, "threads:        %d\n", opt->thread); 
-	fprintf(stderr, "seed_length:    %u\n", opt->len_kmer); 
+	fprintf(stderr, "kmerSize:    %u\n", opt->len_kmer); 
 	fprintf(stderr, "HashIndexDir:   %s\n", opt->hash_dir); 
 	fprintf(stderr, "Reads:          %s\n", opt->read_path); 
 	fprintf(stderr, "\n"); 

@@ -20,7 +20,7 @@ struct option long_options[] = {
 	//{ "threads",     1,   NULL,    't'   },
 	//{ "num",     1,   NULL,    'n' },
 	{"help",	0,	NULL,	'h'},
-	{"seed_length",	1,	NULL,	'l'},
+	{"kmerSize",	1,	NULL,	'k'},
 	//{ "hit_max",		1,NULL,	'm'},
 	//{ "auto_load", 0, NULL, 'a'},
 	{0,	0,	0,	0   }
@@ -42,7 +42,7 @@ int Ctrl_option::Usage()
  	//fprintf(stderr, "           -t, --threads       <int>    thread\n"); 
 	//fprintf(stderr, "           -n, --num           <int>    candidate number [5]\n"); 
 	//fprintf(stderr, "           -m, --hit_max       <int>    max hit times of a seed [1000]\n"); 
-	fprintf(stderr, "           -l, --seed_length   <int>    seed length of hash index [15]\n"); 
+	fprintf(stderr, "           -k, --kmerSize   <int>    kmer size of hash index [15]\n"); 
 	//fprintf(stderr, "           -a, --auto_load              load hash table from hash file without produce hash file");
 	//fprintf(stderr, "           -c, --write_cigar            print cigar in XA fields [False]\n"); 
 	fprintf(stderr, "\n"); 
@@ -62,7 +62,7 @@ int Ctrl_option::opt_parse(int argc, char *argv[], Options* opt)
 			case 'h':
 				return Usage();
 				break;
-			case 'l':
+			case 'k':
 				opt->len_kmer = atoi(optarg);
 				break;
 			default:
@@ -85,7 +85,7 @@ void Ctrl_option::show_parameters(Options* opt)
 	fprintf(stderr, "\n"); 
 	fprintf(stderr, ":::: Simulation parameters :::\n"); 
 	fprintf(stderr, "\n"); 
-	fprintf(stderr, "seed_length:   %u\n", opt->len_kmer); 
+	fprintf(stderr, "kmerSize:   %u\n", opt->len_kmer); 
 	fprintf(stderr, "HashIndexDir:  %s\n", opt->hash_dir); 
 	fprintf(stderr, "Reference:     %s\n", opt->ref_path); 
 	fprintf(stderr, "\n"); 
