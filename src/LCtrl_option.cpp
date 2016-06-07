@@ -30,7 +30,7 @@ struct option long_options[] = {
 LCtrl_option::LCtrl_option(Options *opt)
 {
 	opt->len_kmer = 15;
-	opt->CandidateRatio = 0;
+	opt->CandidateRatio = 0.05;
 	opt->thread = 1;
 }
 
@@ -43,7 +43,7 @@ int LCtrl_option::Usage()
 	fprintf(stderr, "Usage:     Alignment [Options] <HashIndexDir> <Reads>\n\n"); 
 	fprintf(stderr, "Options:   -h, --help                   help\n"); 
  	fprintf(stderr, "           -t, --threads       <int>    number of threads [1]\n"); 
-	fprintf(stderr, "           -r, --ratio         <int>    candidate ratio [0.00]\n"); 
+	fprintf(stderr, "           -r, --ratio         <int>    candidate ratio [0.05]\n"); 
 	//fprintf(stderr, "           -m, --hit_max       <int>    max hit times of a seed [1000]\n"); 
 	fprintf(stderr, "           -k, --kmerSize      <int>    kmer size of hash index [15]\n"); 
 	//fprintf(stderr, "           -a, --auto_load              load hash table from hash file without produce hash file");
