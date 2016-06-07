@@ -57,5 +57,5 @@ Read alignment:
 ---
 
 ###Contact
-
+For advising, bug reporting and requiring help, please contact ydwang@hit.edu.cn or tjiang@hit.edu.cn
 
