@@ -42,10 +42,10 @@ int LCtrl_option::Usage()
 	fprintf(stderr, "Contact:   %s\n\n", CONTACT); 
 	fprintf(stderr, "Usage:     Alignment [Options] <HashIndexDir> <Reads>\n\n"); 
 	fprintf(stderr, "Options:   -h, --help                   help\n"); 
- 	fprintf(stderr, "           -t, --threads       <int>    thread [1]\n"); 
+ 	fprintf(stderr, "           -t, --threads       <int>    number of threads [1]\n"); 
 	fprintf(stderr, "           -r, --ratio         <int>    candidate ratio [0.00]\n"); 
 	//fprintf(stderr, "           -m, --hit_max       <int>    max hit times of a seed [1000]\n"); 
-	fprintf(stderr, "           -k, --kmerSize   <int>    kmer size of hash index [15]\n"); 
+	fprintf(stderr, "           -k, --kmerSize      <int>    kmer size of hash index [15]\n"); 
 	//fprintf(stderr, "           -a, --auto_load              load hash table from hash file without produce hash file");
 	//fprintf(stderr, "           -c, --write_cigar            print cigar in XA fields [False]\n"); 
 	fprintf(stderr, "\n"); 
@@ -96,7 +96,7 @@ void LCtrl_option::show_parameters(Options* opt)
 	fprintf(stderr, "\n"); 
 	fprintf(stderr, "CandidateRatio: %.4f\n", opt->CandidateRatio); 
 	fprintf(stderr, "threads:        %d\n", opt->thread); 
-	fprintf(stderr, "kmerSize:    %u\n", opt->len_kmer); 
+	fprintf(stderr, "kmerSize:       %u\n", opt->len_kmer); 
 	fprintf(stderr, "HashIndexDir:   %s\n", opt->hash_dir); 
 	fprintf(stderr, "Reads:          %s\n", opt->read_path); 
 	fprintf(stderr, "\n"); 
