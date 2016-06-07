@@ -22,6 +22,14 @@ The source code is written in C++, and can be directly download from: https://gi
 A mirror is also in: https://github.com/tjiangHIT/rMFilter
 The makefile is attached. Use the make command for generating the executable file.
 
+###Synopsis
+Reference genome indexing
+	rMFilter-indexer [-k kmerSize] <HashIndexDir> <Reference>
+Read alignment & filtering
+	rMFilter-aligner [-w windowsHits] [-m candidates] [-k kmerSize] [-a match] [-b mismatch]
+	[-q gapOpen] [-r gapExtension] [-t threadNumber] <HashIndexDir> <ReadFile> <Reference>
+
+
 
 ###Contact
 For advising, bug reporting and requiring help, please contact ydwang@hit.edu.cn or tjiang@hit.edu.cn
