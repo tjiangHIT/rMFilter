@@ -43,7 +43,7 @@ Read alignment & filtering
 	rMFilter-aligner:
 	-k, --kmerSize       [INT]    The size of the k-mers extracted from the reference genome for reading index. [15] 
 
-	-r, --ratio          [INT]    The candidate ratio of the filtering. [0.00]
+	-r, --ratio          [INT]    The candidate ratio of the filtering. [0.05]
 
 	-t, --threads        [INT]    The number of threads. [1]
 
