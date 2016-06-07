@@ -1,3 +1,13 @@
+/**  
+ * All rights Reserved, Designed By HIT-Bioinformatics   
+ * @Title:  Index.cpp
+ * @Package 
+ * @Description:    rMFilter Index
+ * @author: tjiang
+ * @date:   June 7 2016
+ * @version V1.0     
+ */
+
 #include <stdio.h>
 #include <iostream>
 #include <time.h>

@@ -1,3 +1,13 @@
+/**  
+ * All rights Reserved, Designed By HIT-Bioinformatics   
+ * @Title:  LCtrl_option.h
+ * @Package 
+ * @Description:    Control the options of rMFilter alignment
+ * @author: tjiang
+ * @date:   June 7 2016
+ * @version V1.0     
+ */
+
 #include <stdint.h>
 
 #define PATH_LEN 1024

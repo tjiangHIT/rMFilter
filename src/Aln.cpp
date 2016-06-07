@@ -1,7 +1,12 @@
-/*
-	data 2015 6 24
-	Alignment the read to find SV read
-*/
+/**  
+ * All rights Reserved, Designed By HIT-Bioinformatics   
+ * @Title:  Aln.cpp
+ * @Package 
+ * @Description:    Control the rMFilter alignment
+ * @author: tjiang
+ * @date:   June 7 2016
+ * @version V1.0     
+ */
 
 #include <iostream>
 #include <fstream>

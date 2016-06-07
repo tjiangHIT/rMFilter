@@ -1,3 +1,13 @@
+/**  
+ * All rights Reserved, Designed By HIT-Bioinformatics   
+ * @Title:  readfl.h
+ * @Package 
+ * @Description:    read files
+ * @author: tjiang
+ * @date:   June 7 2016
+ * @version V1.0     
+ */
+
 #ifndef READ_H_
 #define READ_H_
 #include <stdint.h>

@@ -1,3 +1,13 @@
+/**  
+ * All rights Reserved, Designed By HIT-Bioinformatics   
+ * @Title:  mk_hash.h
+ * @Package 
+ * @Description:    make the hashtable
+ * @author: tjiang
+ * @date:   June 7 2016
+ * @version V1.0     
+ */
+
 #ifndef MK_HASH_
 #define MK_HASH_
 #include <stdint.h>

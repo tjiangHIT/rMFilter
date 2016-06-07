@@ -1,3 +1,13 @@
+/**  
+ * All rights Reserved, Designed By HIT-Bioinformatics   
+ * @Title:  mk_hash.cpp
+ * @Package 
+ * @Description:    make the hashtable
+ * @author: tjiang
+ * @date:   June 7 2016
+ * @version V1.0     
+ */
+
 #include <iostream>
 #include <stdio.h>
 #include <fstream>

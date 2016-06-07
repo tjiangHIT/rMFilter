@@ -1,3 +1,13 @@
+/**  
+ * All rights Reserved, Designed By HIT-Bioinformatics   
+ * @Title:  readfl.cpp
+ * @Package 
+ * @Description:    read files
+ * @author: tjiang
+ * @date:   June 7 2016
+ * @version V1.0     
+ */
+
 #include "readfl.h"
 #include <iostream>
 #include <fstream>

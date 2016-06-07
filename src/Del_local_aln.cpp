@@ -1,12 +1,11 @@
-/*  Del_local_aln.cpp
- *  Author: tjiang (tjiang@hit.edu.cn)
- * -------------------------------------------------------------------
- * Description: 
- * Exported functions:
- * HISTORY:
- * Last edited: Dec 23  2015 (rd)
- * Created:  Jan  30 2015 (rd)
- *-------------------------------------------------------------------
+/**  
+ * All rights Reserved, Designed By HIT-Bioinformatics   
+ * @Title:  Del_local_aln.cpp
+ * @Package 
+ * @Description:    rMFilter alignment & filtering
+ * @author: tjiang
+ * @date:   June 7 2016
+ * @version V1.0     
  */
 
 #include <iostream>

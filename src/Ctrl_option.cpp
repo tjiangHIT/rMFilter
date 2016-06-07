@@ -1,6 +1,15 @@
+/**  
+ * All rights Reserved, Designed By HIT-Bioinformatics   
+ * @Title:  Ctrl_option.cpp
+ * @Package 
+ * @Description:    Control the options of rMFilter index
+ * @author: tjiang
+ * @date:   June 7 2016
+ * @version V1.0     
+ */
+
 #include "Ctrl_option.h"
 #include "info.h"
-
 #include <stdio.h>
 #include <getopt.h>
 #include <string.h>
