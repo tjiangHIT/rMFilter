@@ -1,11 +1,11 @@
-# rMFilter
-Acceleration of long read-based structure variation detection with chimeric read filtering
+# rMFilter: 
+Acceleration of long read-based structure variation calling by chimeric read filtering
 
 ---
 ###Getting Start
-	$ git clone https://github.com/tjiangHIT/rMFilter.git
+	$ git clone https://github.com/hitbc/rMFilter.git (git clone https://github.com/tjiangHIT/rMFilter.git)
 	$ cd rMFilter
-	$ make
+	$ make clean && make
 	$ ./rMFilter-indexer indexDir ref.fa
 	$ ./rMFilter-aligner indexDir read.fq > read.filter.fq
 ---	
