@@ -10,6 +10,9 @@ Acceleration of long read-based structure variation calling by chimeric read fil
 	$ ./rMFilter-aligner indexDir read.fq > read.filter.fq
 ---	
 ###Introduction
+rMFilter is an efficient tool to filter chimeric noisy long reads produced by 3rd generation sequencing platform, such as PacBio SMRT sequencing, to accelerate long read-based detection of genome structural variations (SVs). It improves the overall efficiency of SV calling pipeline by directly filtering potential SV spanning reads. The filtration is based on the analysis of the short token matches between the reads and local regions in reference genome. With the filtration, the numbers of the reads input into SV calling pipelines can be greatly reduced; meanwhile, most of the SV-spanning reads can be retained.
+
+rMFilter has been tested on real and simulated SMRT datasets from human genome, the results demonstrate that the tool can fast filter the reads to substantially improve the overall speed of long read-based SV calling pipelines. Moreover, rMFilter can also correctly handle most of the reads to retain the effectiveness of SV calling pipelines.
 
 ---
 ###Memory usage
