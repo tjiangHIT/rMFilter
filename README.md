@@ -14,6 +14,9 @@ rMFilter is an efficient tool to filter chimeric noisy long reads produced by 3r
 
 rMFilter has been tested on real and simulated SMRT datasets from human genome, the results demonstrate that the tool can fast filter the reads to substantially improve the overall speed of long read-based SV calling pipelines. Moreover, rMFilter can also correctly handle most of the reads to retain the effectiveness of SV calling pipelines.
 
+---
+###Simulated datasets
+
 The simulated datasets use for benchmarking are available at: https://drive.google.com/open?id=0Bxxw-cTRcGuHUVVUS01BeW5aRXc
 
 ---
