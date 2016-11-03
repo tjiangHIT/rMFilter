@@ -1,11 +1,12 @@
-/**  
- * All rights Reserved, Designed By HIT-Bioinformatics   
- * @Title:  Del_local_aln.cpp
- * @Package 
- * @Description:    rMFilter alignment & filtering
- * @author: tjiang
- * @date:   June 7 2016
- * @version V1.0     
+/*  Del_local_aln.cpp
+ *  Author: tjiang (tjiang@hit.edu.cn)
+ * -------------------------------------------------------------------
+ * Description: 
+ * Exported functions:
+ * HISTORY:
+ * Last edited: Dec 23  2015 (rd)
+ * Created:  Jan  30 2015 (rd)
+ *-------------------------------------------------------------------
  */
 
 #include <iostream>
@@ -154,6 +155,18 @@ PreRead Local_aln::FindStart(char *Seq, bool Direction, uint32_t ReadLength, uin
 		}
 	}
 
+	// cout << windowQueue.size() << endl;
+	// cout << "test" << endl;
+	PreRead Top_preRead;
+	if( windowQueue.size() == 0 )
+	{
+		Top_preRead.Win_Begin_start = 0;
+		Top_preRead.Win_Begin_end = 1;
+		Top_preRead.direction = Direction;
+		Top_preRead.cover_score = 0;
+		return Top_preRead;
+	}
+
 	while( !windowQueue.empty())
 	{
 		Node node;
@@ -198,7 +211,7 @@ PreRead Local_aln::FindStart(char *Seq, bool Direction, uint32_t ReadLength, uin
 	// cout << pre_read_Queue.size() << endl;
 	//cout << pre_read_Queue.top().Win_Begin_start << "\t" << pre_read_Queue.top().Win_Begin_end << "\t" << pre_read_Queue.top().cover_score << "\n";
 
-	PreRead Top_preRead;
+	
 	Top_preRead.Win_Begin_start = pre_read_Queue.top().Win_Begin_start;
 	Top_preRead.Win_Begin_end = pre_read_Queue.top().Win_Begin_end;
 	Top_preRead.direction = Direction;
@@ -451,8 +464,19 @@ PreRead Local_aln::acquirePre(kseq_t *Seq, uint32_t **Result_way, char *RCRead, 
 	PreRead     preread_1;
 	PreRead     preread_2;
 
+	if( Seq->seq.l < SEED_NUM + opt->len_kmer )
+	{
+		preread_1.Win_Begin_start = 0;
+		preread_1.Win_Begin_end = 1;
+		preread_1.direction = 0;
+		preread_1.cover_score = 0;
+		return preread_1;
+	}
+
 	RevComRead(RCRead, Seq->seq.s, Seq->seq.l);
+	// cout << "test0" << endl;
 	preread_1 = FindStart(Seq->seq.s, true, Seq->seq.l, opt->len_kmer, Result_way);
+	// cout << "test1" << endl;
 	preread_2 = FindStart(RCRead, false, Seq->seq.l, opt->len_kmer, Result_way);
 
 	if( preread_1.cover_score > preread_2.cover_score ) return preread_1;
@@ -470,6 +494,16 @@ void Local_aln::deal_preread(PreRead pre, uint32_t count)
 
 char Local_aln::local_aln(kseq_t *Seq, PreRead preread, ReadKmerHash *readKmerhash,  uint32_t *readSRhash, uint32_t *tempArray, uint32_t *tempArrayNext, char *RCRead, int *Track, int *Score, Options *opt)
 {
+	if( preread.cover_score * 1.0 / (preread.Win_Begin_end - preread.Win_Begin_start) < 1 )
+	{
+		return 'N';
+	}
+
+	// if( preread.cover_score == 0 )
+	// {
+	// 	return 'T';
+	// }
+
 	if( Threshold_below > preread.cover_score || Threshold_up < preread.cover_score )
 	{
 		// cout << Seq->name.s << "\tT\t" << preread.cover_score << endl;
@@ -601,6 +635,14 @@ void output( kseq_t *Seq, char flag )
 	}
 }
 
+void output_ans( kseq_t *Seq, char flag )
+{
+	if( flag == 'T' || flag == 'J' )
+		cout << Seq->name.s << "\t" << flag << endl;
+	else
+		cout << Seq->name.s << "\tN" << endl;
+}
+
 void Local_aln::process(Options *opt)
 {
 	fstream LengthFile;
@@ -712,6 +754,15 @@ void Local_aln::process(Options *opt)
 		uint32_t cycletime = 0;
 		while(kseq_read(Seq_score) >= 0)
 		{
+			// if( cycletime >= 59408 && cycletime <= 59411)
+			// if( cycletime == 59410 )
+			// {
+			// 	PreRead thispreread;
+			// 	// cout << Seq_score->seq.s << endl;
+			// 	thispreread = acquirePre(Seq_score, Result_way, RCRead, opt);
+			// 	cout << thispreread.Win_Begin_start << "\t" << thispreread.Win_Begin_end << "\t" << thispreread.cover_score << endl;
+			// 	deal_preread(thispreread, cycletime);
+			// }
 			PreRead thispreread;
 			thispreread = acquirePre(Seq_score, Result_way, RCRead, opt);
 			deal_preread(thispreread, cycletime);
@@ -738,6 +789,7 @@ void Local_aln::process(Options *opt)
 			flag = local_aln(Seq, localPreRead[cycletime], readKmerhash,  readSRhash, tempArray, tempArrayNext, RCRead, Track, Score, opt);
 			cycletime++;
 			output( Seq, flag);
+			// output_ans( Seq, flag);
 		}
 		kseq_destroy(Seq);
 
@@ -872,6 +924,7 @@ void Local_aln::process(Options *opt)
 			for (int j = 0; j < opt->thread; ++j) pthread_join(tid[j], 0);
 			free(tid);
 			for( int i = 0; i < n_Seq; ++i ) output(Seq+i, out_flag[i]);
+			// for( int i = 0; i < n_Seq; ++i ) output_ans(Seq+i, out_flag[i]);
 			cycletime++;
 		}
 		//free
