@@ -4,7 +4,7 @@ Acceleration of long read-based structure variation calling by chimeric read fil
 ---
 ### Getting Start
 	$ git clone https://github.com/hitbc/rMFilter.git (git clone https://github.com/tjiangHIT/rMFilter.git)
-	$ cd rMFilter
+	$ cd rMFilter/src
 	$ make clean && make
 	$ ./rMFilter-indexer indexDir ref.fa
 	$ ./rMFilter-aligner indexDir read.fq > read.filter.fq
