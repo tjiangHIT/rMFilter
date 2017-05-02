@@ -57,7 +57,7 @@ Read alignment & filtering
 
 ---
 ### Reference
-rMFilter: acceleration of long read-based structure variation calling by chimeric read filtering. *Under review*
+rMFilter: acceleration of long read-based structure variation calling by chimeric read filtering. *Accepted*
 
 ---
 ### Contact
