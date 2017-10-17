@@ -36,6 +36,14 @@ LCtrl_option::LCtrl_option(Options *opt)
 
 int LCtrl_option::Usage()
 {
+	fprintf(stderr, "           __   __    _____   _   _                         \n");
+	fprintf(stderr, "          /  \\_/  \\  |  ___| |_| | |    _                   \n");
+	fprintf(stderr, "     _ _ |  -   -  | | |___   _  | |  _| |_    ___   _ _    \n");
+	fprintf(stderr, "    | ^_|| | | | | | |  ___| | | | | |_   _|  / _ \\ | ^_|   \n");
+	fprintf(stderr, "    | |  | | | | | | | |     | | | |   | |_  |  __/ | |     \n");
+	fprintf(stderr, "    |_|  |_| |_| |_| |_|     |_| |_|   \\___/  \\___| |_|     \n");
+	fprintf(stderr, "\n"); 
+	fprintf(stderr, "rMFilter: Acceleration of long read-based structure variation calling by chimeric read filtering.\n"); 
 	fprintf(stderr, "\n"); 
 	fprintf(stderr, "Program:   Alignment\n"); 
 	fprintf(stderr, "Version:   %s\n", PACKAGE_VERSION); 
