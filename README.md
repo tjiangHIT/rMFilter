@@ -3,6 +3,13 @@ Acceleration of long read-based structure variation calling by chimeric read fil
 
 ---
 ### Getting Start
+	           __   __    _____   _   _                         
+	          /  \_/  \  |  ___| |_| | |    _                   
+	     _ _ |  -   -  | | |___   _  | |  _| |_    ___   _ _    
+	    | ^_|| | | | | | |  ___| | | | | |_   _|  / _ \ | ^_|   
+	    | |  | | | | | | | |     | | | |   | |_  |  __/ | |     
+	    |_|  |_| |_| |_| |_|     |_| |_|   \___/  \___| |_|     
+	
 	$ git clone https://github.com/hitbc/rMFilter.git (git clone https://github.com/tjiangHIT/rMFilter.git)
 	$ cd rMFilter/src
 	$ make clean && make
