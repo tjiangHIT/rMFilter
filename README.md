@@ -63,8 +63,8 @@ Read alignment & filtering
 	-t, --threads        [INT]    The number of threads. [1]
 
 ---
-### Reference
-rMFilter: acceleration of long read-based structure variation calling by chimeric read filtering. *Accepted*
+### Citation
+Bo Liu, Tao Jiang, S M Yiu, Junyi Li, Yadong Wang; rMFilter: acceleration of long read-based structure variation calling by chimeric read filtering, Bioinformatics, Volume 33, Issue 17, 1 September 2017, Pages 2750–2752, https://doi.org/10.1093/bioinformatics/btx279
 
 ---
 ### Contact
